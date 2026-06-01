@@ -1,1 +1,85 @@
-<p>stock-list works!</p>
+<div class="max-w-5xl">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-white/90">Stock</h1>
+      <p class="text-sm text-white/30 mt-0.5">Control de inventario</p>
+    </div>
+    @if (!loading() && lowStockCount() > 0) {
+      <span class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400">
+        ⚠️ {{ lowStockCount() }} con stock bajo
+      </span>
+    }
+  </div>
+
+  @if (!appState.hasBranch()) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Seleccioná una sucursal</p>
+    </div>
+  } @else {
+    <div class="flex items-center gap-3 mb-4">
+      <input [value]="search()" (input)="search.set($any($event.target).value)"
+             placeholder="Buscar producto..."
+             class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm
+                    placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 w-52 transition-all"/>
+      <div class="flex rounded-lg border border-white/5 overflow-hidden">
+        <button (click)="filter.set('all')"
+                class="px-3 py-2 text-xs transition-colors"
+                [class.bg-indigo-500]="filter() === 'all'"
+                [class.text-white]="filter() === 'all'"
+                [class.text-white]="filter() !== 'all'"
+                [class.text-opacity-30]="filter() !== 'all'">
+          Todos
+        </button>
+        <button (click)="filter.set('low')"
+                class="px-3 py-2 text-xs transition-colors"
+                [class.bg-amber-500]="filter() === 'low'"
+                [class.text-white]="filter() === 'low'"
+                [class.text-white]="filter() !== 'low'"
+                [class.text-opacity-30]="filter() !== 'low'">
+          Stock bajo
+        </button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="flex justify-center py-16">
+        <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    } @else if (filteredStock().length === 0) {
+      <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+        <p class="text-white/40 text-sm">Sin resultados</p>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-white/5 overflow-hidden" style="background:#1a1a1a;">
+        @for (s of filteredStock(); track s.id; let last = $last) {
+          <div class="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-white/3"
+               [class.border-b]="!last"
+               [class.border-white]="!last"
+               [class.border-opacity-5]="!last">
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-white/80">{{ s.productName }}
+                @if (s.variantName !== 'DEFAULT') {
+                  <span class="text-white/30"> — {{ s.variantName }}</span>
+                }
+              </p>
+              @if (s.sku) { <p class="text-xs text-white/25">{{ s.sku }}</p> }
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <p class="text-sm font-semibold"
+                   [class.text-emerald-400]="!s.lowStock"
+                   [class.text-amber-400]="s.lowStock">
+                  {{ s.quantity }}
+                </p>
+                <p class="text-[10px] text-white/25">mín: {{ s.minQuantity }}</p>
+              </div>
+              @if (s.lowStock) {
+                <span class="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-400">bajo</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

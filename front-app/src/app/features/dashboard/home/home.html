@@ -1,0 +1,66 @@
+<div class="max-w-4xl">
+
+  <!-- Greeting -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-semibold text-white/90">
+      Bienvenido, {{ auth.currentUser()?.firstName }} 👋
+    </h1>
+    <p class="text-sm text-white/30 mt-1">Trade Management System</p>
+  </div>
+
+  @if (!appState.hasCommerce()) {
+    <!-- No commerce selected -->
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2m0 0a2 2 0 104 0m-4 0h4m6-2a2 2 0 104 0"/>
+        </svg>
+      </div>
+      <h2 class="text-white/70 font-medium mb-2">No hay comercio seleccionado</h2>
+      <p class="text-white/30 text-sm mb-6">Creá o seleccioná un comercio para comenzar</p>
+      <a routerLink="/commerces"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition-colors">
+        Ir a Comercios
+      </a>
+    </div>
+  } @else {
+    <!-- Quick access cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      @for (card of quickCards; track card.label) {
+        <a [routerLink]="card.path"
+           class="rounded-xl border border-white/5 p-4 hover:border-white/10 hover:bg-white/3
+                  transition-all duration-150 group cursor-pointer"
+           style="background:#1a1a1a;">
+          <div class="w-8 h-8 rounded-lg mb-3 flex items-center justify-center"
+               [style.background]="card.bg">
+            <span class="text-sm">{{ card.emoji }}</span>
+          </div>
+          <p class="text-sm font-medium text-white/70 group-hover:text-white/90 transition-colors">{{ card.label }}</p>
+          <p class="text-xs text-white/30 mt-0.5">{{ card.desc }}</p>
+        </a>
+      }
+    </div>
+
+    <!-- Commerce info -->
+    <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs text-white/30 uppercase tracking-widest mb-1">Comercio activo</p>
+          <h3 class="text-white/90 font-semibold text-lg">{{ appState.commerce()!.name }}</h3>
+          <p class="text-xs text-white/30 mt-1">{{ appState.commerce()!.type }}</p>
+        </div>
+        @if (appState.hasBranch()) {
+          <div class="text-right">
+            <p class="text-xs text-white/30 uppercase tracking-widest mb-1">Sucursal</p>
+            <p class="text-sm text-indigo-400 font-medium">{{ appState.branch()!.name }}</p>
+          </div>
+        } @else {
+          <a routerLink="/commerces"
+             class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+            Seleccionar sucursal →
+          </a>
+        }
+      </div>
+    </div>
+  }
+</div>

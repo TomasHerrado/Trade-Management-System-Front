@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Branch } from './branch';
+import { BranchService as Branch } from './branch';
 
 describe('Branch', () => {
   let service: Branch;

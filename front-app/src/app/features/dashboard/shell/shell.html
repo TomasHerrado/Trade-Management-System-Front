@@ -1,0 +1,131 @@
+<div class="flex h-screen bg-[#0f0f0f] font-['DM_Sans',sans-serif] overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside
+    class="flex flex-col transition-all duration-300 ease-in-out border-r border-white/5"
+    [class.w-60]="sidebarOpen()"
+    [class.w-16]="!sidebarOpen()"
+    style="background: #141414;">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-4 h-16 border-b border-white/5 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+            d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      @if (sidebarOpen()) {
+        <span class="text-white font-semibold text-sm tracking-wide">TSM</span>
+      }
+    </div>
+
+    <!-- Commerce selector -->
+    @if (appState.hasCommerce() && sidebarOpen()) {
+      <div class="mx-3 mt-3 mb-1 px-3 py-2.5 rounded-lg bg-white/5 cursor-pointer hover:bg-white/8 transition-colors"
+           routerLink="/commerces">
+        <p class="text-[10px] text-white/30 uppercase tracking-widest mb-0.5">Comercio activo</p>
+        <p class="text-xs text-white/80 font-medium truncate">{{ appState.commerce()!.name }}</p>
+        @if (appState.hasBranch()) {
+          <p class="text-[10px] text-indigo-400 truncate mt-0.5">{{ appState.branch()!.name }}</p>
+        }
+      </div>
+    }
+
+    <!-- Nav -->
+    <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+      @for (item of nav; track item.path) {
+        <a [routerLink]="item.path"
+           routerLinkActive="bg-indigo-500/15 text-indigo-400"
+           [routerLinkActiveOptions]="{exact: item.path === '/'}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:text-white/80
+                  hover:bg-white/5 transition-all duration-150 group">
+          <span class="w-5 h-5 shrink-0 flex items-center justify-center">
+            <ng-container [ngSwitch]="item.icon">
+              <svg *ngSwitchCase="'home'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <svg *ngSwitchCase="'store'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2m0 0a2 2 0 104 0m-4 0h4m6-2a2 2 0 104 0"/>
+              </svg>
+              <svg *ngSwitchCase="'box'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              <svg *ngSwitchCase="'layers'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4L2 9l10 5 10-5-10-5zM2 19l10 5 10-5M2 14l10 5 10-5"/>
+              </svg>
+              <svg *ngSwitchCase="'trending'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              <svg *ngSwitchCase="'truck'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1m8-11h3l3 4v5h-2"/>
+              </svg>
+              <svg *ngSwitchCase="'users'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+              <svg *ngSwitchCase="'supplier'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </ng-container>
+          </span>
+          @if (sidebarOpen()) {
+            <span class="text-sm font-medium">{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- User footer -->
+    <div class="border-t border-white/5 p-3 shrink-0">
+      <div class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+           (click)="logout()">
+        <div class="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+          <span class="text-xs text-indigo-400 font-semibold">
+            {{ (auth.currentUser()?.firstName ?? 'U')[0] }}
+          </span>
+        </div>
+        @if (sidebarOpen()) {
+          <div class="flex-1 min-w-0">
+            <p class="text-xs text-white/70 truncate font-medium">{{ auth.currentUser()?.firstName }} {{ auth.currentUser()?.lastName }}</p>
+            <p class="text-[10px] text-white/30">Cerrar sesión</p>
+          </div>
+        }
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Topbar -->
+    <header class="h-16 border-b border-white/5 flex items-center px-6 gap-4 shrink-0" style="background:#141414;">
+      <button (click)="sidebarOpen.set(!sidebarOpen())"
+              class="text-white/40 hover:text-white/80 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+
+      @if (appState.hasBranch()) {
+        <div class="flex items-center gap-2 text-xs text-white/30">
+          <span>{{ appState.commerce()?.name }}</span>
+          <span>/</span>
+          <span class="text-white/60">{{ appState.branch()?.name }}</span>
+        </div>
+      }
+
+      <div class="ml-auto flex items-center gap-3">
+        @if (!appState.hasCommerce()) {
+          <a routerLink="/commerces"
+             class="text-xs px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 transition-colors">
+            Seleccionar comercio
+          </a>
+        }
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet/>
+    </main>
+  </div>
+</div>

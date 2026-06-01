@@ -1,1 +1,77 @@
-<p>commerce-list works!</p>
+<div class="max-w-4xl">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-white/90">Mis Comercios</h1>
+      <p class="text-sm text-white/30 mt-0.5">Seleccioná un comercio para activarlo</p>
+    </div>
+    <a routerLink="/commerces/new"
+       class="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm
+              font-medium hover:bg-indigo-600 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nuevo
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-20">
+      <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (commerces().length === 0) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">No tenés comercios creados aún</p>
+      <a routerLink="/commerces/new"
+         class="mt-4 inline-block text-sm text-indigo-400 hover:text-indigo-300">
+        Crear tu primer comercio →
+      </a>
+    </div>
+  } @else {
+    <div class="grid gap-3">
+      @for (c of commerces(); track c.id) {
+        <div
+          class="rounded-xl border p-5 cursor-pointer transition-all duration-150 group"
+          [class.border-indigo-500]="isActive(c)"
+          [class.bg-indigo-500]="isActive(c)"
+          [class.bg-opacity-5]="isActive(c)"
+          [class.border-white]="!isActive(c)"
+          [class.border-opacity-5]="!isActive(c)"
+          [class.hover:border-opacity-10]="!isActive(c)"
+          style="background: #1a1a1a;"
+          (click)="select(c)">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+                   [class.bg-indigo-500]="isActive(c)"
+                   [class.bg-opacity-20]="isActive(c)"
+                   style="background: rgba(255,255,255,0.05)">
+                {{ c.type === 'FERRETERIA' ? '🔧' : c.type === 'KIOSCO' ? '🏪' :
+                   c.type === 'ROPA' ? '👗' : c.type === 'LIBRERIA' ? '📚' :
+                   c.type === 'ELECTRONICA' ? '💻' : c.type === 'BAZAR' ? '🛒' : '🏢' }}
+              </div>
+              <div>
+                <h3 class="font-medium text-white/90">{{ c.name }}</h3>
+                <p class="text-xs text-white/30 mt-0.5">{{ typeLabel[c.type] }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              @if (isActive(c)) {
+                <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400 font-medium">
+                  Activo
+                </span>
+              }
+              <a [routerLink]="'/commerces/' + c.id + '/branches'"
+                 (click)="$event.stopPropagation()"
+                 class="text-xs text-white/30 hover:text-white/70 transition-colors px-2 py-1">
+                Sucursales →
+              </a>
+            </div>
+          </div>
+          @if (c.description) {
+            <p class="text-xs text-white/30 mt-3">{{ c.description }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

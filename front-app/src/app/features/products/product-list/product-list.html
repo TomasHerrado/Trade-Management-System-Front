@@ -1,1 +1,93 @@
-<p>product-list works!</p>
+<div class="max-w-5xl">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-white/90">Productos</h1>
+      <p class="text-sm text-white/30 mt-0.5">{{ products().length }} productos</p>
+    </div>
+    @if (appState.hasCommerce()) {
+      <div class="flex items-center gap-2">
+        <input [value]="search()" (input)="search.set($any($event.target).value)"
+               placeholder="Buscar..."
+               class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm
+                      placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 w-48 transition-all"/>
+        <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm
+                       font-medium hover:bg-indigo-600 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nuevo
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (!appState.hasCommerce()) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Seleccioná un comercio primero</p>
+    </div>
+  } @else if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (filteredProducts().length === 0) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Sin productos</p>
+    </div>
+  } @else {
+    <div class="rounded-xl border border-white/5 overflow-hidden" style="background:#1a1a1a;">
+      @for (p of filteredProducts(); track p.id; let last = $last) {
+        <div [class.border-b]="!last" class="border-white/5">
+          <div class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer"
+               (click)="toggleExpand(p.id)">
+            <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-sm">📦</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-white/90">{{ p.name }}</p>
+              @if (p.categoryName) {
+                <p class="text-xs text-white/30 mt-0.5">{{ p.categoryName }}</p>
+              }
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full"
+                  [class.bg-emerald-500]="p.status === 'ACTIVE'"
+                  [class.bg-opacity-10]="p.status === 'ACTIVE'"
+                  [class.text-emerald-400]="p.status === 'ACTIVE'"
+                  [class.bg-white]="p.status !== 'ACTIVE'"
+                  [class.text-white]="p.status !== 'ACTIVE'"
+                  [class.text-opacity-20]="p.status !== 'ACTIVE'">
+              {{ p.status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
+            </span>
+            <svg class="w-4 h-4 text-white/20 transition-transform duration-200"
+                 [class.rotate-180]="expanded() === p.id"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+
+          @if (expanded() === p.id) {
+            <div class="px-5 pb-4 border-t border-white/5">
+              <p class="text-xs text-white/30 uppercase tracking-wider mb-3 pt-4">Variantes</p>
+              @if (!variants()[p.id]) {
+                <div class="flex justify-center py-4">
+                  <div class="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              } @else if (variants()[p.id].length === 0) {
+                <p class="text-xs text-white/30">Sin variantes</p>
+              } @else {
+                <div class="grid grid-cols-3 gap-2">
+                  @for (v of variants()[p.id]; track v.id) {
+                    <div class="rounded-lg bg-white/5 px-3 py-2.5">
+                      <p class="text-xs font-medium text-white/80">{{ v.name }}</p>
+                      @if (v.sku) {
+                        <p class="text-[10px] text-white/30">SKU: {{ v.sku }}</p>
+                      }
+                      <p class="text-xs text-emerald-400 mt-1 font-medium">${{ v.price | number:'1.0-2' }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

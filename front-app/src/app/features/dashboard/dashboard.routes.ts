@@ -27,6 +27,10 @@ export const DASHBOARD_ROUTES: Routes = [
         loadComponent: () => import('../products/product-list/product-list').then(m => m.ProductList)
       },
       {
+        path: 'products/new',
+        loadComponent: () => import('../products/product-form/product-form').then(m => m.ProductForm)
+      },
+      {
         path: 'stock',
         loadComponent: () => import('../stock/stock-list/stock-list').then(m => m.StockList)
       },
@@ -43,12 +47,20 @@ export const DASHBOARD_ROUTES: Routes = [
         loadComponent: () => import('../purchases/purchase-list/purchase-list').then(m => m.PurchaseList)
       },
       {
+        path: 'purchases/new',
+        loadComponent: () => import('../purchases/purchase-form/purchase-form').then(m => m.PurchaseForm)
+      },
+      {
         path: 'customers',
         loadComponent: () => import('../customers/customer-list/customer-list').then(m => m.CustomerList)
       },
       {
         path: 'suppliers',
         loadComponent: () => import('../suppliers/supplier-list/supplier-list').then(m => m.SupplierList)
+      },
+      {
+        path: 'cash-register',
+        loadComponent: () => import('../cash-register/cash-register').then(m => m.CashRegisterPage)
       },
     ]
   }

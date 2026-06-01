@@ -1,1 +1,81 @@
-<p>purchase-list works!</p>
+<div class="max-w-5xl">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-white/90">Compras</h1>
+      <p class="text-sm text-white/30 mt-0.5">{{ purchases().length }} registros</p>
+    </div>
+    @if (appState.hasBranch()) {
+      <a routerLink="/purchases/new"
+         class="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm
+                font-medium hover:bg-indigo-600 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nueva Compra
+      </a>
+    }
+  </div>
+
+  @if (appState.hasBranch() && !loading()) {
+    <div class="rounded-xl border border-white/5 p-4 mb-5 flex items-center justify-between" style="background:#1a1a1a;">
+      <div>
+        <p class="text-xs text-white/30 uppercase tracking-wider">Total en compras</p>
+        <p class="text-2xl font-semibold text-white/90 mt-0.5">${{ totalPurchases() | number:'1.0-2' }}</p>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-xl">📦</div>
+    </div>
+  }
+
+  @if (!appState.hasBranch()) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Seleccioná una sucursal para ver las compras</p>
+    </div>
+  } @else if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (purchases().length === 0) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Sin compras registradas</p>
+    </div>
+  } @else {
+    <div class="rounded-xl border border-white/5 overflow-hidden" style="background:#1a1a1a;">
+      @for (p of purchases(); track p.id; let last = $last) {
+        <div [class.border-b]="!last" class="border-white/5">
+          <div class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer"
+               (click)="expanded.set(expanded() === p.id ? null : p.id)">
+            <div>
+              <p class="text-sm font-medium text-white/90">${{ p.total | number:'1.0-2' }}</p>
+              <p class="text-xs text-white/30 mt-0.5">{{ p.createdAt | date:'dd/MM HH:mm' }}</p>
+            </div>
+            <div class="flex-1"></div>
+            <span class="text-xs text-white/40">{{ p.supplierName }}</span>
+            <span class="text-xs px-2.5 py-1 rounded-full"
+                  [class.bg-emerald-500]="p.status === 'COMPLETED'"
+                  [class.bg-opacity-10]="p.status === 'COMPLETED'"
+                  [class.text-emerald-400]="p.status === 'COMPLETED'"
+                  [class.bg-red-500]="p.status !== 'COMPLETED'"
+                  [class.text-red-400]="p.status !== 'COMPLETED'">
+              {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
+            </span>
+          </div>
+          @if (expanded() === p.id) {
+            <div class="px-5 pb-4 border-t border-white/5">
+              <div class="pt-4 grid grid-cols-3 gap-2">
+                @for (item of p.items; track item.id) {
+                  <div class="rounded-lg bg-white/5 px-3 py-2.5">
+                    <p class="text-xs text-white/70">{{ item.productName }}</p>
+                    @if (item.variantName !== 'DEFAULT') {
+                      <p class="text-[10px] text-white/30">{{ item.variantName }}</p>
+                    }
+                    <p class="text-xs text-white/50 mt-1">x{{ item.quantity }} — ${{ item.subtotal | number:'1.0-2' }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

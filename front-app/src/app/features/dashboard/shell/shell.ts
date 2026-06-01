@@ -15,7 +15,7 @@ export class ShellComponent {
   appState = inject(AppStateService);
   router   = inject(Router);
 
-  sidebarOpen = signal(true);
+  sidebarOpen  = signal(true);
   userMenuOpen = signal(false);
 
   nav = [
@@ -27,6 +27,7 @@ export class ShellComponent {
     { label: 'Compras',     icon: 'truck',     path: '/purchases' },
     { label: 'Clientes',    icon: 'users',     path: '/customers' },
     { label: 'Proveedores', icon: 'supplier',  path: '/suppliers' },
+    { label: 'Caja',        icon: 'cash',      path: '/cash-register' },
   ];
 
   logout(): void {

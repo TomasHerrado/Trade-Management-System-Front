@@ -1,1 +1,66 @@
-<p>supplier-form works!</p>
+<div class="max-w-lg">
+  <div class="flex items-center gap-3 mb-6">
+    <a routerLink="/suppliers" class="text-white/30 hover:text-white/60 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-xl font-semibold text-white/90">
+      {{ editId() ? 'Editar Proveedor' : 'Nuevo Proveedor' }}
+    </h1>
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="rounded-xl border border-white/5 p-6" style="background:#1a1a1a;">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+      <div>
+        <label class="block text-xs text-white/40 mb-1.5">Empresa *</label>
+        <input formControlName="name" type="text" placeholder="Distribuidora XYZ"
+               class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                      text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"
+               [class.border-red-500]="form.get('name')!.invalid && form.get('name')!.touched"/>
+      </div>
+
+      <div>
+        <label class="block text-xs text-white/40 mb-1.5">Persona de contacto</label>
+        <input formControlName="contactName" type="text" placeholder="Juan García"
+               class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                      text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-white/40 mb-1.5">Teléfono</label>
+          <input formControlName="phone" type="text" placeholder="11 1234-5678"
+                 class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                        text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+        </div>
+        <div>
+          <label class="block text-xs text-white/40 mb-1.5">Email</label>
+          <input formControlName="email" type="email" placeholder="proveedor@empresa.com"
+                 class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                        text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-white/40 mb-1.5">Dirección</label>
+        <input formControlName="address" type="text" placeholder="Av. Industrial 500"
+               class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                      text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+      </div>
+
+      <button type="submit" [disabled]="loading()"
+              class="w-full py-2.5 rounded-lg bg-indigo-500 text-white text-sm font-medium
+                     hover:bg-indigo-600 disabled:opacity-50 transition-colors mt-2">
+        {{ loading() ? 'Guardando...' : (editId() ? 'Guardar Cambios' : 'Crear Proveedor') }}
+      </button>
+    </form>
+  </div>
+</div>

@@ -73,6 +73,11 @@
                 </p>
                 <p class="text-[10px] text-white/25">mín: {{ s.minQuantity }}</p>
               </div>
+              <a [routerLink]="'/stock/adjust/' + s.productVariantId"
+                [queryParams]="{ name: s.productName + (s.variantName !== 'DEFAULT' ? ' - ' + s.variantName : '') }"
+                class="text-xs text-amber-400 hover:text-amber-300 transition-colors px-2 py-1">
+                Ajustar
+              </a>
               @if (s.lowStock) {
                 <span class="text-xs px-2 py-1 rounded-full bg-amber-500/10 text-amber-400">bajo</span>
               }

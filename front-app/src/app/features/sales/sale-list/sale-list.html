@@ -43,7 +43,8 @@
       @for (s of sales(); track s.id; let last = $last) {
         <div [class.border-b]="!last" class="border-white/5">
           <div class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer"
-               (click)="expanded.set(expanded() === s.id ? null : s.id)">
+               (click)="expanded.set(expanded() === s.id ? null : s.id)"><a [routerLink]="'/sales/' + s.id"
+                class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer block"></a>
             <div>
               <p class="text-sm font-medium text-white/90">${{ s.total | number:'1.0-2' }}</p>
               <p class="text-xs text-white/30 mt-0.5">{{ s.createdAt | date:'dd/MM HH:mm' }}</p>

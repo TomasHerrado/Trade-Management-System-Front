@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { StockService } from '../../../core/services/stock';
 import { AppStateService } from '../../../core/services/app-state';
 import { Stock } from '../../../core/models/stock.model';
+import { RouterLink, RouterPreloader } from '@angular/router';
 
 @Component({
   selector: 'app-stock-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './stock-list.html',
 })
 export class StockList implements OnInit {

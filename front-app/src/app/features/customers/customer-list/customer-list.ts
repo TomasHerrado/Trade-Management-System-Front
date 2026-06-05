@@ -4,11 +4,12 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CustomerService } from '../../../core/services/customer';
 import { AppStateService } from '../../../core/services/app-state';
 import { Customer } from '../../../core/models/customer.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './customer-list.html',
 })
 export class CustomerList implements OnInit {

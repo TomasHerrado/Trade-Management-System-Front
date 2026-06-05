@@ -4,11 +4,12 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SupplierService } from '../../../core/services/supplier';
 import { AppStateService } from '../../../core/services/app-state';
 import { Supplier } from '../../../core/models/supplier.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-supplier-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './supplier-list.html',
 })
 export class SupplierList implements OnInit {

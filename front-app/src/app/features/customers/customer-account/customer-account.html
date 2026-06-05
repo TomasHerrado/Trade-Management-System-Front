@@ -1,1 +1,129 @@
-<p>customer-account works!</p>
+<div class="max-w-3xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a routerLink="/customers" class="text-white/30 hover:text-white/60 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-xl font-semibold text-white/90">Cuenta Corriente</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (account()) {
+    <div class="grid gap-5">
+
+      <!-- Info del cliente -->
+      <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-indigo-500/15 flex items-center justify-center">
+              <span class="text-sm font-medium text-indigo-400">
+                {{ account()!.customer.firstName[0] }}
+              </span>
+            </div>
+            <div>
+              <h2 class="font-semibold text-white/90">
+                {{ account()!.customer.firstName }} {{ account()!.customer.lastName }}
+              </h2>
+              <p class="text-xs text-white/30 mt-0.5">
+                @if (account()!.customer.dni) { DNI: {{ account()!.customer.dni }} · }
+                {{ account()!.customer.phone }}
+              </p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-white/30 uppercase tracking-wider mb-1">Deuda</p>
+            <p class="text-2xl font-bold"
+               [class.text-red-400]="account()!.balance > 0"
+               [class.text-emerald-400]="account()!.balance <= 0">
+              ${{ account()!.balance | number:'1.0-2' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registrar pago -->
+      @if (account()!.balance > 0) {
+        <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+          <h3 class="text-sm font-medium text-white/70 mb-4">Registrar Pago</h3>
+
+          @if (success()) {
+            <div class="mb-4 px-4 py-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400">
+              {{ success() }}
+            </div>
+          }
+          @if (error()) {
+            <div class="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+              {{ error() }}
+            </div>
+          }
+
+          <form [formGroup]="paymentForm" (ngSubmit)="registerPayment()" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-white/40 mb-1.5">Monto *</label>
+                <input formControlName="amount" type="number" min="0.01" step="0.01"
+                       [placeholder]="'Máx: $' + (account()!.balance | number:'1.0-2')"
+                       class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                              text-sm placeholder:text-white/20 focus:outline-none focus:border-emerald-500/50 transition-all"/>
+              </div>
+              <div>
+                <label class="block text-xs text-white/40 mb-1.5">Descripción</label>
+                <input formControlName="description" type="text" placeholder="Opcional..."
+                       class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                              text-sm placeholder:text-white/20 focus:outline-none focus:border-emerald-500/50 transition-all"/>
+              </div>
+            </div>
+            <button type="submit" [disabled]="saving() || !appState.hasBranch()"
+                    class="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium
+                           hover:bg-emerald-600 disabled:opacity-50 transition-colors">
+              {{ saving() ? 'Registrando...' : 'Registrar Pago' }}
+            </button>
+            @if (!appState.hasBranch()) {
+              <p class="text-xs text-amber-400">Seleccioná una sucursal para registrar pagos</p>
+            }
+          </form>
+        </div>
+      }
+
+      <!-- Historial de ventas -->
+      @if (sales().length > 0) {
+        <div>
+          <h3 class="text-sm font-medium text-white/50 mb-3 uppercase tracking-wider">Historial de compras</h3>
+          <div class="rounded-xl border border-white/5 overflow-hidden" style="background:#1a1a1a;">
+            @for (s of sales(); track s.id; let last = $last) {
+              <div class="flex items-center gap-4 px-5 py-3.5"
+                   [class.border-b]="!last" style="border-color: rgba(255,255,255,0.05)">
+                <div class="flex-1">
+                  <p class="text-sm text-white/80 font-medium">${{ s.total | number:'1.0-2' }}</p>
+                  <p class="text-xs text-white/30 mt-0.5">{{ s.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/40">
+                  {{ s.items.length }} producto{{ s.items.length !== 1 ? 's' : '' }}
+                </span>
+                <span class="text-xs px-2.5 py-1 rounded-full"
+                      [class.bg-red-500]="s.paymentType === 'ACCOUNT'"
+                      [class.bg-opacity-15]="s.paymentType === 'ACCOUNT'"
+                      [class.text-red-400]="s.paymentType === 'ACCOUNT'"
+                      [class.bg-white]="s.paymentType !== 'ACCOUNT'"
+                      [class.bg-opacity-5]="s.paymentType !== 'ACCOUNT'"
+                      [class.text-white]="s.paymentType !== 'ACCOUNT'"
+                      [class.text-opacity-40]="s.paymentType !== 'ACCOUNT'">
+                  {{ s.paymentType === 'ACCOUNT' ? 'Fiado' : s.paymentType }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  } @else {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">No se encontró la cuenta corriente</p>
+    </div>
+  }
+</div>

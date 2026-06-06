@@ -34,7 +34,7 @@
 
     <!-- Nav -->
     <nav class="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-      @for (item of nav; track item.path) {
+      @for (item of nav(); track item.path) {
         <a [routerLink]="item.path"
            routerLinkActive="bg-indigo-500/15 text-indigo-400"
            [routerLinkActiveOptions]="{exact: item.path === '/'}"
@@ -47,6 +47,10 @@
               </svg>
               <svg *ngSwitchCase="'store'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 2m0 0a2 2 0 104 0m-4 0h4m6-2a2 2 0 104 0"/>
+              </svg>
+              <svg *ngSwitchCase="'team'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857 M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857 m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
               </svg>
               <svg *ngSwitchCase="'box'" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>

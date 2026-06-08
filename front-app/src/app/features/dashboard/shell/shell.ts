@@ -19,7 +19,6 @@ export class ShellComponent {
 
   sidebarOpen = signal(true);
 
-  // Navegación filtrada según rol
   readonly nav = computed(() => {
     const all = [
       { label: 'Inicio',      icon: 'home',      path: '/',             roles: ['OWNER','ADMIN','EMPLOYEE'] },
@@ -35,7 +34,7 @@ export class ShellComponent {
     ];
 
     const currentRole = this.role.role();
-    if (!currentRole) return all; // antes de cargar, mostrar todo
+    if (!currentRole) return all;
     return all.filter(item => item.roles.includes(currentRole));
   });
 

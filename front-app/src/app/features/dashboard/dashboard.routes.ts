@@ -11,7 +11,7 @@ export const DASHBOARD_ROUTES: Routes = [
 
       // Gestión de comercios — solo OWNER
       { path: 'commerces', loadComponent: () => import('../commerces/commerce-list/commerce-list').then(m => m.CommerceList) },
-      { path: 'commerces/new', canActivate: [ownerGuard], loadComponent: () => import('../commerces/commerce-form/commerce-form').then(m => m.CommerceForm) },
+      { path: 'commerces/new', loadComponent: () => import('../commerces/commerce-form/commerce-form').then(m => m.CommerceForm) },
       { path: 'commerces/:commerceId/branches', loadComponent: () => import('../branches/branch-list/branch-list').then(m => m.BranchList) },
 
       // Gestión del equipo — solo OWNER

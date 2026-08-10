@@ -21,6 +21,8 @@ export class ProductList implements OnInit {
   loading    = signal(true);
   expanded   = signal<string | null>(null);
   search     = signal('');
+  deletingId = signal<string | null>(null);
+  error      = signal('');
 
   ngOnInit(): void {
     const cId = this.appState.commerce()?.id;
@@ -39,6 +41,28 @@ export class ProductList implements OnInit {
     if (!cId || this.variants()[id]) return;
     this.svc.getVariants(cId, id).subscribe(d => {
       this.variants.update(v => ({ ...v, [id]: d }));
+    });
+  }
+
+  deleteProduct(product: Product): void {
+    const cId = this.appState.commerce()?.id;
+    if (!cId) return;
+    if (!confirm(`¿Eliminar el producto "${product.name}"? Esta acción lo desactiva y ya no aparecerá disponible.`)) return;
+
+    this.deletingId.set(product.id);
+    this.error.set('');
+
+    this.svc.deactivate(cId, product.id).subscribe({
+      next: () => {
+        this.products.update(list =>
+          list.map(p => p.id === product.id ? { ...p, status: 'INACTIVE' } : p)
+        );
+        this.deletingId.set(null);
+      },
+      error: () => {
+        this.error.set('No se pudo eliminar el producto');
+        this.deletingId.set(null);
+      }
     });
   }
 

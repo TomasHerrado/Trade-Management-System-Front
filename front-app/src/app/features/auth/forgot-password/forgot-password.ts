@@ -5,15 +5,15 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-forgot-password',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './register.html'
+  templateUrl: './forgot-password.html'
 })
-export class RegisterComponent {
+export class ForgotPasswordComponent {
   loading = signal(false);
   error = signal('');
-  showPassword = signal(false);
+
   form;
 
   constructor(
@@ -22,14 +22,8 @@ export class RegisterComponent {
     private router: Router
   ) {
     this.form = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      email: ['', [Validators.required, Validators.email]]
     });
-  }
-  togglePassword(): void {
-    this.showPassword.update(v => !v);
   }
 
   submit(): void {
@@ -41,28 +35,21 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set('');
 
-    this.auth.register(this.form.value as any).subscribe({
-      next: () => this.router.navigate(['/']),
+    const email = this.form.value.email as string;
+
+    this.auth.forgotPassword(email).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/auth/verify-code'], { state: { email } });
+      },
       error: (e) => {
-        this.error.set(e.error?.message ?? 'Error al registrarse');
+        this.error.set(e.error?.message ?? 'No pudimos enviar el código. Intentá nuevamente.');
         this.loading.set(false);
       }
     });
   }
 
-  get firstName() {
-    return this.form.get('firstName')!;
-  }
-
-  get lastName() {
-    return this.form.get('lastName')!;
-  }
-
   get email() {
     return this.form.get('email')!;
-  }
-
-  get password() {
-    return this.form.get('password')!;
   }
 }

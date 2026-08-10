@@ -37,6 +37,27 @@ export class AuthService {
       .pipe(tap(res => this.storeSession(res)));
   }
 
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.apiUrl}/auth/forgot-password`,
+      { email }
+    );
+  }
+
+  verifyResetCode(email: string, code: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.apiUrl}/auth/verify-reset-code`,
+      { email, code }
+    );
+  }
+
+  resetPassword(email: string, code: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.apiUrl}/auth/reset-password`,
+      { email, code, newPassword }
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);

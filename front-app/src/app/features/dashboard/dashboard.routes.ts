@@ -20,6 +20,10 @@ export const DASHBOARD_ROUTES: Routes = [
       // Productos — OWNER y ADMIN pueden ver; crear/editar controlado en component
       { path: 'products', loadComponent: () => import('../products/product-list/product-list').then(m => m.ProductList) },
       { path: 'products/new', canActivate: [adminGuard], loadComponent: () => import('../products/product-form/product-form').then(m => m.ProductForm) },
+      { path: 'products/:id/edit', canActivate: [adminGuard], loadComponent: () => import('../products/product-form/product-form').then(m => m.ProductForm) },
+      { path: 'products/:productId/variants', loadComponent: () => import('../products/variant-list/variant-list').then(m => m.VariantList) },
+      { path: 'products/:productId/variants/new', loadComponent: () => import('../products/variant-form/variant-form').then(m => m.VariantForm) },
+      { path: 'products/:productId/variants/:variantId/edit', loadComponent: () => import('../products/variant-form/variant-form').then(m => m.VariantForm) },
 
       // Stock — todos acceden (employee también)
       { path: 'stock', loadComponent: () => import('../stock/stock-list/stock-list').then(m => m.StockList) },

@@ -13,7 +13,7 @@ import { AuthService } from '../../../core/services/auth';
 export class LoginComponent {
   loading = signal(false);
   error = signal('');
-
+  showPassword = signal(false);
   form;
 
   constructor(
@@ -25,6 +25,9 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+  }
+  togglePassword(): void {
+    this.showPassword.update(v => !v);
   }
 
   submit(): void {

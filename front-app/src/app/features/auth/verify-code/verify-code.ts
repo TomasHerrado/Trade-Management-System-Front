@@ -5,15 +5,16 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-verify-code',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './register.html'
+  templateUrl: './verify-code.html'
 })
-export class RegisterComponent {
+export class VerifyCodeComponent {
   loading = signal(false);
   error = signal('');
-  showPassword = signal(false);
+  email: string;
+
   form;
 
   constructor(
@@ -21,15 +22,16 @@ export class RegisterComponent {
     private auth: AuthService,
     private router: Router
   ) {
+    const nav = this.router.getCurrentNavigation();
+    this.email = nav?.extras.state?.['email'] ?? window.history.state?.email ?? '';
+
+    if (!this.email) {
+      this.router.navigate(['/auth/forgot-password']);
+    }
+
     this.form = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
     });
-  }
-  togglePassword(): void {
-    this.showPassword.update(v => !v);
   }
 
   submit(): void {
@@ -41,28 +43,21 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set('');
 
-    this.auth.register(this.form.value as any).subscribe({
-      next: () => this.router.navigate(['/']),
+    const code = this.form.value.code as string;
+
+    this.auth.verifyResetCode(this.email, code).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/auth/reset-password'], { state: { email: this.email, code } });
+      },
       error: (e) => {
-        this.error.set(e.error?.message ?? 'Error al registrarse');
+        this.error.set(e.error?.message ?? 'Código inválido o expirado.');
         this.loading.set(false);
       }
     });
   }
 
-  get firstName() {
-    return this.form.get('firstName')!;
-  }
-
-  get lastName() {
-    return this.form.get('lastName')!;
-  }
-
-  get email() {
-    return this.form.get('email')!;
-  }
-
-  get password() {
-    return this.form.get('password')!;
+  get code() {
+    return this.form.get('code')!;
   }
 }

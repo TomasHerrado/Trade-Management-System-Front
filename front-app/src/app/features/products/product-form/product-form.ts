@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../../core/services/product';
 import { AppStateService } from '../../../core/services/app-state';
 
@@ -14,12 +14,16 @@ import { AppStateService } from '../../../core/services/app-state';
 export class ProductForm implements OnInit {
   private svc    = inject(ProductService);
   private router = inject(Router);
+  private route  = inject(ActivatedRoute);
   private fb     = inject(FormBuilder);
   appState       = inject(AppStateService);
 
-  loading  = signal(false);
-  error    = signal('');
-  categories = signal<any[]>([]);
+  loading        = signal(false);
+  loadingProduct = signal(false);
+  error          = signal('');
+  categories     = signal<any[]>([]);
+  isEditMode     = signal(false);
+  productId      = signal<string | null>(null);
 
   form = this.fb.group({
     name:        ['', Validators.required],
@@ -36,6 +40,34 @@ export class ProductForm implements OnInit {
     if (cId) {
       this.svc.getCategories(cId).subscribe(d => this.categories.set(d));
     }
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode.set(true);
+      this.productId.set(id);
+      this.loadProduct(id);
+    }
+  }
+
+  private loadProduct(id: string): void {
+    const cId = this.appState.commerce()?.id;
+    if (!cId) return;
+
+    this.loadingProduct.set(true);
+    this.svc.getById(cId, id).subscribe({
+      next: (product) => {
+        this.form.patchValue({
+          name: product.name,
+          description: product.description ?? '',
+          categoryId: product.categoryId ?? null,
+        });
+        this.loadingProduct.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudo cargar el producto');
+        this.loadingProduct.set(false);
+      }
+    });
   }
 
   newVariantGroup() {
@@ -58,6 +90,28 @@ export class ProductForm implements OnInit {
   }
 
   submit(): void {
+    this.isEditMode() ? this.submitEdit() : this.submitCreate();
+  }
+
+  private submitEdit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const cId = this.appState.commerce()?.id;
+    const id = this.productId();
+    if (!cId || !id) { this.error.set('Seleccioná un comercio'); return; }
+
+    this.loading.set(true);
+    this.error.set('');
+
+    this.svc.update(cId, id, this.form.value as any).subscribe({
+      next: () => this.router.navigate(['/products']),
+      error: e => { this.error.set(e.error?.message ?? 'Error al actualizar'); this.loading.set(false); }
+    });
+  }
+
+  private submitCreate(): void {
     if (this.form.invalid || this.variantsForm.invalid) {
       this.form.markAllAsTouched();
       this.variantsForm.markAllAsTouched();

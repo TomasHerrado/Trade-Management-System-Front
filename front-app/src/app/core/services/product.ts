@@ -26,6 +26,10 @@ export class ProductService {
     return this.http.delete<void>(`${this.base(commerceId)}/${id}`);
   }
 
+  activate(commerceId: string, id: string): Observable<Product> {
+    return this.http.patch<Product>(`${this.base(commerceId)}/${id}/activate`, {});
+  }
+
   createVariant(commerceId: string, productId: string, req: ProductVariantRequest): Observable<ProductVariant> {
     return this.http.post<ProductVariant>(`${this.base(commerceId)}/${productId}/variants`, req);
   }
@@ -38,11 +42,21 @@ export class ProductService {
   deactivateVariant(commerceId: string, productId: string, variantId: string): Observable<void> {
     return this.http.delete<void>(`${this.base(commerceId)}/${productId}/variants/${variantId}`);
   }
+  activateVariant(commerceId: string, productId: string, variantId: string): Observable<ProductVariant> {
+    return this.http.patch<ProductVariant>(`${this.base(commerceId)}/${productId}/variants/${variantId}/activate`, {});
+  }
+  deleteVariant(commerceId: string, productId: string, variantId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(commerceId)}/${productId}/variants/${variantId}/permanent`);
+  }
 
   createCategory(commerceId: string, req: CategoryRequest): Observable<Category> {
     return this.http.post<Category>(this.catBase(commerceId), req);
   }
   getCategories(commerceId: string): Observable<Category[]> {
     return this.http.get<Category[]>(this.catBase(commerceId));
+  }
+
+  delete(commerceId: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(commerceId)}/${id}/permanent`);
   }
 }

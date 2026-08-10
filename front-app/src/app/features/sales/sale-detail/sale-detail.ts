@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SaleService } from '../../../core/services/sale';
 import { AppStateService } from '../../../core/services/app-state';
 import { Sale } from '../../../core/models/sale.model';
+import { ExportService } from '../../../core/services/export';
 
 @Component({
   selector: 'app-sale-detail',
@@ -31,5 +32,22 @@ export class SaleDetail implements OnInit {
       next: s => { this.sale.set(s); this.loading.set(false); },
       error: () => this.loading.set(false)
     });
+  }
+  private exportSvc = inject(ExportService);
+
+  print(): void {
+    this.exportSvc.print();
+  }
+
+  downloadPdf(): void {
+    const s = this.sale();
+    if (!s) return;
+    this.exportSvc.exportToPdf('ticket-print', `venta-${s.id.slice(0, 8)}.pdf`);
+  }
+
+  downloadExcel(): void {
+    const s = this.sale();
+    if (!s) return;
+    this.exportSvc.exportSaleToExcel(s);
   }
 }

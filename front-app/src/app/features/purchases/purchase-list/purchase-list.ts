@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { PurchaseService } from '../../../core/services/purchase';
 import { AppStateService } from '../../../core/services/app-state';
 import { Purchase } from '../../../core/models/purchase.model';
+import { ExportService } from '../../../core/services/export';
 
 @Component({
   selector: 'app-purchase-list',
@@ -14,6 +15,8 @@ import { Purchase } from '../../../core/models/purchase.model';
 export class PurchaseList implements OnInit {
   private svc  = inject(PurchaseService);
   appState     = inject(AppStateService);
+  private exportSvc = inject(ExportService);
+  printingPurchase = signal<Purchase | null>(null);
 
   purchases = signal<Purchase[]>([]);
   loading   = signal(true);
@@ -32,5 +35,20 @@ export class PurchaseList implements OnInit {
     return this.purchases()
       .filter(p => p.status === 'COMPLETED')
       .reduce((sum, p) => sum + p.total, 0);
+  }
+  preparePrint(p: Purchase): void {
+    this.printingPurchase.set(p);
+    setTimeout(() => this.exportSvc.print(), 50);
+  }
+
+  preparePdf(p: Purchase): void {
+    this.printingPurchase.set(p);
+    setTimeout(() => {
+      this.exportSvc.exportToPdf('invoice-print', `compra-${p.id.slice(0, 8)}.pdf`);
+    }, 50);
+  }
+
+  exportExcel(p: Purchase): void {
+    this.exportSvc.exportPurchaseToExcel(p);
   }
 }

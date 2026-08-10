@@ -56,12 +56,10 @@
             <span class="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/50">
               {{ paymentLabel[s.paymentType] }}
             </span>
-            <span class="text-xs px-2.5 py-1 rounded-full"
-                  [class.bg-emerald-500]="s.status === 'COMPLETED'"
-                  [class.bg-opacity-10]="s.status === 'COMPLETED'"
-                  [class.text-emerald-400]="s.status === 'COMPLETED'"
-                  [class.bg-red-500]="s.status !== 'COMPLETED'"
-                  [class.text-red-400]="s.status !== 'COMPLETED'">
+            <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                            (s.status === 'COMPLETED'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20')">
               {{ s.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
             </span>
           </div>

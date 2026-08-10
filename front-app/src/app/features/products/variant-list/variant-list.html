@@ -45,13 +45,10 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <p class="text-sm font-medium text-white/90">{{ v.name }}</p>
-              <span class="text-xs px-2 py-0.5 rounded-full"
-                    [class.bg-emerald-500]="v.status === 'ACTIVE'"
-                    [class.bg-opacity-10]="v.status === 'ACTIVE'"
-                    [class.text-emerald-400]="v.status === 'ACTIVE'"
-                    [class.bg-white]="v.status !== 'ACTIVE'"
-                    [class.text-white]="v.status !== 'ACTIVE'"
-                    [class.text-opacity-20]="v.status !== 'ACTIVE'">
+              <span [class]="'text-xs px-2 py-0.5 rounded-full border ' +
+                              (v.status === 'ACTIVE'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : 'bg-red-500/10 text-red-400 border-red-500/20')">
                 {{ v.status === 'ACTIVE' ? 'Activa' : 'Inactiva' }}
               </span>
             </div>
@@ -74,22 +71,66 @@
             </svg>
           </a>
 
-          @if (v.status === 'ACTIVE') {
-            <button (click)="deactivate(v)" [disabled]="deactivatingId() === v.id"
-                    title="Desactivar variante"
-                    class="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-colors disabled:opacity-40">
-              @if (deactivatingId() === v.id) {
-                <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+          @if (v.status !== 'ACTIVE') {
+            <button (click)="activateVariant(v)" [disabled]="activatingId() === v.id"
+                    title="Activar variante"
+                    class="p-1.5 rounded-lg text-white/20 hover:text-emerald-400 hover:bg-white/5 transition-colors disabled:opacity-40">
+              @if (activatingId() === v.id) {
+                <div class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
               } @else {
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                 </svg>
               }
             </button>
           }
+
+          <button (click)="openDeleteConfirm(v)" [disabled]="deletingId() === v.id"
+                  title="Eliminar variante"
+                  class="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-colors disabled:opacity-40">
+            @if (deletingId() === v.id) {
+              <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            }
+          </button>
         </div>
       }
+    </div>
+  }
+  @if (confirmingVariant(); as v) {
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+         (click)="closeDeleteConfirm()">
+      <div class="rounded-xl border border-white/10 p-6 max-w-sm w-full" style="background:#1a1a1a;"
+           (click)="$event.stopPropagation()">
+        <p class="text-sm font-medium text-white/90 mb-2">"{{ v.name }}"</p>
+        <p class="text-xs text-white/40 mb-5">
+          @if (v.status === 'ACTIVE') {
+            ¿Querés eliminar la variante definitivamente o solo desactivarla? Al desactivarla se conserva su historial y no aparecerá disponible.
+          } @else {
+            Esta acción elimina la variante de forma permanente y no se puede deshacer.
+          }
+        </p>
+        <div class="flex flex-col gap-2">
+          @if (v.status === 'ACTIVE') {
+            <button (click)="confirmDeactivate()"
+                    class="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm font-medium hover:bg-white/10 transition-colors">
+              Desactivar
+            </button>
+          }
+          <button (click)="confirmDelete()"
+                  class="w-full py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors">
+            Eliminar definitivamente
+          </button>
+          <button (click)="closeDeleteConfirm()"
+                  class="w-full py-2 rounded-lg text-white/40 text-xs hover:text-white/60 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

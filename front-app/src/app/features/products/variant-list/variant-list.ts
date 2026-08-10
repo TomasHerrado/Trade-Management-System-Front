@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService } from '../../../core/services/product';
 import { AppStateService } from '../../../core/services/app-state';
 import { Product, ProductVariant } from '../../../core/models/product.model';
@@ -12,57 +12,106 @@ import { Product, ProductVariant } from '../../../core/models/product.model';
   templateUrl: './variant-list.html',
 })
 export class VariantList implements OnInit {
-  private svc    = inject(ProductService);
-  private route  = inject(ActivatedRoute);
-  appState       = inject(AppStateService);
+  private svc   = inject(ProductService);
+  private route = inject(ActivatedRoute);
+  appState      = inject(AppStateService);
 
-  product     = signal<Product | null>(null);
-  variants    = signal<ProductVariant[]>([]);
-  loading     = signal(true);
-  error       = signal('');
-  deactivatingId = signal<string | null>(null);
+  productId = this.route.snapshot.paramMap.get('productId')!;
 
-  productId = '';
+  product    = signal<Product | null>(null);
+  variants   = signal<ProductVariant[]>([]);
+  loading    = signal(true);
+  deletingId = signal<string | null>(null);
+  activatingId = signal<string | null>(null);
+  confirmingVariant = signal<ProductVariant | null>(null);
+  error      = signal('');
 
   ngOnInit(): void {
-    this.productId = this.route.snapshot.paramMap.get('productId')!;
     const cId = this.appState.commerce()?.id;
-    if (!cId || !this.productId) { this.loading.set(false); return; }
+    if (!cId) { this.loading.set(false); return; }
 
     this.svc.getById(cId, this.productId).subscribe(p => this.product.set(p));
-    this.loadVariants(cId);
-  }
-
-  private loadVariants(cId: string): void {
-    this.loading.set(true);
     this.svc.getVariants(cId, this.productId).subscribe({
       next: d => { this.variants.set(d); this.loading.set(false); },
-      error: () => { this.error.set('No se pudieron cargar las variantes'); this.loading.set(false); }
+      error: () => this.loading.set(false)
     });
   }
 
-  deactivate(variant: ProductVariant): void {
-    const cId = this.appState.commerce()?.id;
-    if (!cId) return;
-    if (!confirm(`¿Desactivar la variante "${variant.name}"?`)) return;
+  margin(v: ProductVariant): number {
+    if (!v.price) return 0;
+    return ((v.price - v.cost) / v.price) * 100;
+  }
 
-    this.deactivatingId.set(variant.id);
+  openDeleteConfirm(variant: ProductVariant): void {
+    this.confirmingVariant.set(variant);
+  }
+
+  closeDeleteConfirm(): void {
+    this.confirmingVariant.set(null);
+  }
+
+  confirmDeactivate(): void {
+    const variant = this.confirmingVariant();
+    const cId = this.appState.commerce()?.id;
+    if (!variant || !cId) return;
+
+    this.confirmingVariant.set(null);
+    this.deletingId.set(variant.id);
+    this.error.set('');
+
     this.svc.deactivateVariant(cId, this.productId, variant.id).subscribe({
       next: () => {
         this.variants.update(list =>
           list.map(v => v.id === variant.id ? { ...v, status: 'INACTIVE' } : v)
         );
-        this.deactivatingId.set(null);
+        this.deletingId.set(null);
       },
       error: () => {
         this.error.set('No se pudo desactivar la variante');
-        this.deactivatingId.set(null);
+        this.deletingId.set(null);
       }
     });
   }
 
-  margin(v: ProductVariant): number {
-    if (!v.cost) return 0;
-    return ((v.price - v.cost) / v.cost) * 100;
+  confirmDelete(): void {
+    const variant = this.confirmingVariant();
+    const cId = this.appState.commerce()?.id;
+    if (!variant || !cId) return;
+
+    this.confirmingVariant.set(null);
+    this.deletingId.set(variant.id);
+    this.error.set('');
+
+    this.svc.deleteVariant(cId, this.productId, variant.id).subscribe({
+      next: () => {
+        this.variants.update(list => list.filter(v => v.id !== variant.id));
+        this.deletingId.set(null);
+      },
+      error: (e) => {
+        this.error.set(e.error?.message ?? 'No se pudo eliminar la variante');
+        this.deletingId.set(null);
+      }
+    });
+  }
+
+  activateVariant(variant: ProductVariant): void {
+    const cId = this.appState.commerce()?.id;
+    if (!cId) return;
+
+    this.activatingId.set(variant.id);
+    this.error.set('');
+
+    this.svc.activateVariant(cId, this.productId, variant.id).subscribe({
+      next: () => {
+        this.variants.update(list =>
+          list.map(v => v.id === variant.id ? { ...v, status: 'ACTIVE' } : v)
+        );
+        this.activatingId.set(null);
+      },
+      error: () => {
+        this.error.set('No se pudo activar la variante');
+        this.activatingId.set(null);
+      }
+    });
   }
 }

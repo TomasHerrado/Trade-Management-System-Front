@@ -50,14 +50,38 @@
             </div>
             <div class="flex-1"></div>
             <span class="text-xs text-white/40">{{ p.supplierName }}</span>
-            <span class="text-xs px-2.5 py-1 rounded-full"
-                  [class.bg-emerald-500]="p.status === 'COMPLETED'"
-                  [class.bg-opacity-10]="p.status === 'COMPLETED'"
-                  [class.text-emerald-400]="p.status === 'COMPLETED'"
-                  [class.bg-red-500]="p.status !== 'COMPLETED'"
-                  [class.text-red-400]="p.status !== 'COMPLETED'">
-              {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
-            </span>
+           <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                                (p.status === 'COMPLETED'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                  : 'bg-red-500/10 text-red-400 border-red-500/20')">
+                  {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
+                </span>
+                <div class="flex items-center gap-1">
+              <button (click)="preparePrint(p); $event.stopPropagation()"
+                      title="Imprimir factura"
+                      class="p-1.5 rounded-lg text-white/20 hover:text-indigo-400 hover:bg-white/5 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a1 1 0 001-1v-4H8v4a1 1 0 001 1zm8-12V5a1 1 0 00-1-1H8a1 1 0 00-1 1v4h10z"/>
+                </svg>
+              </button>
+              <button (click)="preparePdf(p); $event.stopPropagation()"
+                      title="Descargar PDF"
+                      class="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H8a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </button>
+              <button (click)="exportExcel(p); $event.stopPropagation()"
+                      title="Exportar a Excel"
+                      class="p-1.5 rounded-lg text-white/20 hover:text-emerald-400 hover:bg-white/5 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 17v-2a4 4 0 014-4h4M9 17H4a1 1 0 01-1-1V6a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1M9 17l6-6"/>
+                </svg>
+              </button>
+            </div>
           </div>
           @if (expanded() === p.id) {
             <div class="px-5 pb-4 border-t border-white/5">
@@ -76,6 +100,58 @@
           }
         </div>
       }
+    </div>
+  }
+  @if (printingPurchase(); as p) {
+    <div id="invoice-print" class="print-only" style="width:700px; padding:32px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #000; padding-bottom:16px; margin-bottom:16px;">
+        <div>
+          <p style="font-size:20px; font-weight:bold;">FACTURA DE COMPRA</p>
+          <p style="font-size:12px; color:#555;">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-size:12px;">N° {{ p.id.slice(0, 8).toUpperCase() }}</p>
+          <p style="font-size:12px;">Estado: {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <p style="font-size:12px; color:#555;">PROVEEDOR</p>
+        <p style="font-size:14px; font-weight:bold;">{{ p.supplierName }}</p>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">
+        <thead>
+          <tr style="border-bottom:1px solid #000;">
+            <th style="text-align:left; padding:6px 0;">Producto</th>
+            <th style="text-align:center; padding:6px 0;">Cant.</th>
+            <th style="text-align:right; padding:6px 0;">Costo unit.</th>
+            <th style="text-align:right; padding:6px 0;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of p.items; track item.id) {
+            <tr style="border-bottom:1px solid #ddd;">
+              <td style="padding:6px 0;">
+                {{ item.productName }}
+                @if (item.variantName !== 'DEFAULT') {
+                  <span style="color:#777;"> — {{ item.variantName }}</span>
+                }
+              </td>
+              <td style="text-align:center; padding:6px 0;">{{ item.quantity }}</td>
+              <td style="text-align:right; padding:6px 0;">${{ item.unitCost | number:'1.0-2' }}</td>
+              <td style="text-align:right; padding:6px 0;">${{ item.subtotal | number:'1.0-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div style="display:flex; justify-content:flex-end;">
+        <div style="width:200px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold; border-top:2px solid #000; padding-top:8px;">
+          <span>TOTAL</span>
+          <span>${{ p.total | number:'1.0-2' }}</span>
+        </div>
+      </div>
     </div>
   }
 </div>

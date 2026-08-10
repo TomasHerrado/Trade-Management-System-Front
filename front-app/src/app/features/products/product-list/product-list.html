@@ -53,15 +53,28 @@
                 <p class="text-xs text-white/30 mt-0.5">{{ p.categoryName }}</p>
               }
             </div>
-            <span class="text-xs px-2.5 py-1 rounded-full"
-                  [class.bg-emerald-500]="p.status === 'ACTIVE'"
-                  [class.bg-opacity-10]="p.status === 'ACTIVE'"
-                  [class.text-emerald-400]="p.status === 'ACTIVE'"
-                  [class.bg-white]="p.status !== 'ACTIVE'"
-                  [class.text-white]="p.status !== 'ACTIVE'"
-                  [class.text-opacity-20]="p.status !== 'ACTIVE'">
+            <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                            (p.status === 'ACTIVE'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20')">
               {{ p.status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
             </span>
+
+            @if (p.status !== 'ACTIVE') {
+              <button (click)="activateProduct(p); $event.stopPropagation()"
+                      [disabled]="activatingId() === p.id"
+                      title="Activar producto"
+                      class="p-1.5 rounded-lg text-white/20 hover:text-emerald-400 hover:bg-white/5 transition-colors disabled:opacity-40">
+                @if (activatingId() === p.id) {
+                  <div class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                } @else {
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5 13l4 4L19 7"/>
+                  </svg>
+                }
+              </button>
+            }
 
             <!-- Botón editar -->
             <a [routerLink]="['/products', p.id, 'edit']"
@@ -75,21 +88,21 @@
             </a>
 
             <!-- Botón eliminar -->
-            @if (p.status === 'ACTIVE') {
-              <button (click)="deleteProduct(p); $event.stopPropagation()"
-                      [disabled]="deletingId() === p.id"
-                      title="Eliminar producto"
-                      class="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-colors disabled:opacity-40">
-                @if (deletingId() === p.id) {
-                  <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                } @else {
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                }
-              </button>
-            }
+            
+              <button (click)="openDeleteConfirm(p); $event.stopPropagation()"
+                    [disabled]="deletingId() === p.id"
+                    title="Eliminar producto"
+                    class="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-white/5 transition-colors disabled:opacity-40">
+              @if (deletingId() === p.id) {
+                <div class="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+              } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              }
+            </button>
+            
 
             <svg class="w-4 h-4 text-white/20 transition-transform duration-200"
                  [class.rotate-180]="expanded() === p.id"
@@ -124,6 +137,38 @@
           }
         </div>
       }
+    </div>
+  }
+  @if (confirmingProduct(); as p) {
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+         (click)="closeDeleteConfirm()">
+      <div class="rounded-xl border border-white/10 p-6 max-w-sm w-full" style="background:#1a1a1a;"
+           (click)="$event.stopPropagation()">
+        <p class="text-sm font-medium text-white/90 mb-2">"{{ p.name }}"</p>
+        <p class="text-xs text-white/40 mb-5">
+          @if (p.status === 'ACTIVE') {
+            ¿Querés eliminar el producto definitivamente o solo desactivarlo? Al desactivarlo se conserva su historial y no aparecerá disponible.
+          } @else {
+            Esta acción elimina el producto de forma permanente y no se puede deshacer.
+          }
+        </p>
+        <div class="flex flex-col gap-2">
+          @if (p.status === 'ACTIVE') {
+            <button (click)="confirmDeactivate()"
+                    class="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm font-medium hover:bg-white/10 transition-colors">
+              Desactivar
+            </button>
+          }
+          <button (click)="confirmDelete()"
+                  class="w-full py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors">
+            Eliminar definitivamente
+          </button>
+          <button (click)="closeDeleteConfirm()"
+                  class="w-full py-2 rounded-lg text-white/40 text-xs hover:text-white/60 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

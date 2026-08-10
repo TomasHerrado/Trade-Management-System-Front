@@ -15,14 +15,16 @@ export class ProductList implements OnInit {
   private svc  = inject(ProductService);
   appState     = inject(AppStateService);
 
-  products   = signal<Product[]>([]);
-  variants   = signal<Record<string, ProductVariant[]>>({});
-  categories = signal<Category[]>([]);
-  loading    = signal(true);
-  expanded   = signal<string | null>(null);
-  search     = signal('');
-  deletingId = signal<string | null>(null);
-  error      = signal('');
+  products         = signal<Product[]>([]);
+  variants         = signal<Record<string, ProductVariant[]>>({});
+  categories       = signal<Category[]>([]);
+  loading          = signal(true);
+  expanded         = signal<string | null>(null);
+  search           = signal('');
+  deletingId       = signal<string | null>(null);
+  activatingId  = signal<string | null>(null);
+  confirmingProduct = signal<Product | null>(null);
+  error            = signal('');
 
   ngOnInit(): void {
     const cId = this.appState.commerce()?.id;
@@ -44,11 +46,20 @@ export class ProductList implements OnInit {
     });
   }
 
-  deleteProduct(product: Product): void {
-    const cId = this.appState.commerce()?.id;
-    if (!cId) return;
-    if (!confirm(`¿Eliminar el producto "${product.name}"? Esta acción lo desactiva y ya no aparecerá disponible.`)) return;
+  openDeleteConfirm(product: Product): void {
+    this.confirmingProduct.set(product);
+  }
 
+  closeDeleteConfirm(): void {
+    this.confirmingProduct.set(null);
+  }
+
+  confirmDeactivate(): void {
+    const product = this.confirmingProduct();
+    const cId = this.appState.commerce()?.id;
+    if (!product || !cId) return;
+
+    this.confirmingProduct.set(null);
     this.deletingId.set(product.id);
     this.error.set('');
 
@@ -60,7 +71,48 @@ export class ProductList implements OnInit {
         this.deletingId.set(null);
       },
       error: () => {
-        this.error.set('No se pudo eliminar el producto');
+        this.error.set('No se pudo desactivar el producto');
+        this.deletingId.set(null);
+      }
+    });
+  }
+  activateProduct(product: Product): void {
+    const cId = this.appState.commerce()?.id;
+    if (!cId) return;
+
+    this.activatingId.set(product.id);
+    this.error.set('');
+
+    this.svc.activate(cId, product.id).subscribe({
+      next: () => {
+        this.products.update(list =>
+          list.map(p => p.id === product.id ? { ...p, status: 'ACTIVE' } : p)
+        );
+        this.activatingId.set(null);
+      },
+      error: () => {
+        this.error.set('No se pudo activar el producto');
+        this.activatingId.set(null);
+      }
+    });
+  }
+
+  confirmDelete(): void {
+    const product = this.confirmingProduct();
+    const cId = this.appState.commerce()?.id;
+    if (!product || !cId) return;
+
+    this.confirmingProduct.set(null);
+    this.deletingId.set(product.id);
+    this.error.set('');
+
+    this.svc.delete(cId, product.id).subscribe({
+      next: () => {
+        this.products.update(list => list.filter(p => p.id !== product.id));
+        this.deletingId.set(null);
+      },
+      error: (e) => {
+        this.error.set(e.error?.message ?? 'No se pudo eliminar el producto');
         this.deletingId.set(null);
       }
     });

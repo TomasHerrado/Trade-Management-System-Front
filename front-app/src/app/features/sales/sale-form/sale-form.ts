@@ -106,7 +106,7 @@ export class SaleForm implements OnInit {
       items,
       note: this.note() || undefined
     }).subscribe({
-      next: () => this.router.navigate(['/sales']),
+      next: sale => this.router.navigate(['/sales', sale.id]),
       error: e => { this.error.set(e.error?.message ?? 'Error al registrar'); this.saving.set(false); }
     });
   }

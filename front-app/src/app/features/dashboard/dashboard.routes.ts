@@ -48,6 +48,8 @@ export const DASHBOARD_ROUTES: Routes = [
       { path: 'suppliers', canActivate: [adminGuard], loadComponent: () => import('../suppliers/supplier-list/supplier-list').then(m => m.SupplierList) },
       { path: 'suppliers/new', canActivate: [adminGuard], loadComponent: () => import('../suppliers/supplier-form/supplier-form').then(m => m.SupplierForm) },
       { path: 'suppliers/:id/edit', canActivate: [adminGuard], loadComponent: () => import('../suppliers/supplier-form/supplier-form').then(m => m.SupplierForm) },
+      { path: 'suppliers/:id', canActivate: [adminGuard], loadComponent: () => import('../suppliers/supplier-detail/supplier-detail').then(m => m.SupplierDetail) },
+      { path: 'suppliers/:id/debts', canActivate: [adminGuard], loadComponent: () => import('../suppliers/supplier-debts/supplier-debts').then(m => m.SupplierDebts) },
 
       // Caja — todos acceden
       { path: 'cash-register', loadComponent: () => import('../cash-register/cash-register').then(m => m.CashRegisterPage) },

@@ -1,0 +1,123 @@
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a [routerLink]="supplier() ? '/suppliers/' + supplier()!.id : '/suppliers'"
+       class="text-white/30 hover:text-white/60 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-xl font-semibold text-white/90">Deudas</h1>
+      @if (supplier(); as s) {
+        <p class="text-sm text-white/30 mt-0.5">{{ s.name }}</p>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (supplier(); as s) {
+    <div class="space-y-5">
+
+      <!-- Total deuda -->
+      <div class="rounded-xl border p-5 flex items-center justify-between"
+           [class.border-red-500]="s.debt > 0" [class.border-opacity-20]="s.debt > 0"
+           [class.border-white]="s.debt <= 0" [class.border-opacity-5]="s.debt <= 0"
+           [style.background]="s.debt > 0 ? 'rgba(239,68,68,0.05)' : '#1a1a1a'">
+        <div>
+          <p class="text-xs text-white/30 uppercase tracking-wider">Total adeudado a {{ s.name }}</p>
+          <p class="text-3xl font-bold mt-0.5" [class.text-red-400]="s.debt > 0" [class.text-white]="s.debt <= 0">
+            ${{ s.debt | number:'1.0-2' }}
+          </p>
+        </div>
+        @if (s.debt > 0) {
+          <button (click)="openPayForm()"
+                  class="px-4 py-2.5 rounded-lg bg-indigo-500 text-white text-sm font-medium
+                         hover:bg-indigo-600 transition-colors">
+            Saldar deuda
+          </button>
+        }
+      </div>
+
+      @if (!appState.hasBranch()) {
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-400">
+          Seleccioná una sucursal para ver el historial de compras y registrar pagos.
+        </div>
+      }
+
+      <!-- Formulario de pago -->
+      @if (showPayForm()) {
+        <div class="rounded-xl border border-indigo-500/30 p-5" style="background:#1a1a1a;">
+          <h3 class="text-sm font-medium text-white/70 mb-4">Registrar pago</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-white/40 mb-1.5">Monto</label>
+              <input type="number" [value]="payAmount()" min="0.01" [max]="s.debt" step="0.01"
+                     (input)="payAmount.set(+$any($event.target).value)"
+                     class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                            text-sm focus:outline-none focus:border-indigo-500/50 transition-all"/>
+            </div>
+            <div>
+              <label class="block text-xs text-white/40 mb-1.5">Nota (opcional)</label>
+              <input type="text" [value]="payNote()" placeholder="Pago en efectivo..."
+                     (input)="payNote.set($any($event.target).value)"
+                     class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                            text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+            </div>
+            @if (payError()) {
+              <p class="text-xs text-red-400">{{ payError() }}</p>
+            }
+            <div class="flex gap-2 pt-1">
+              <button (click)="settleDebt()" [disabled]="paying()"
+                      class="px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-medium
+                             hover:bg-indigo-600 disabled:opacity-50 transition-colors">
+                {{ paying() ? 'Guardando...' : 'Confirmar pago' }}
+              </button>
+              <button (click)="showPayForm.set(false)"
+                      class="px-4 py-2 rounded-lg text-white/40 text-sm hover:text-white/70 transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Compras que generaron la deuda -->
+      <div class="rounded-xl border border-white/5 overflow-hidden" style="background:#1a1a1a;">
+        <div class="px-5 py-3 border-b border-white/5">
+          <p class="text-xs text-white/40 uppercase tracking-wider">Compras registradas</p>
+        </div>
+        @if (purchases().length === 0) {
+          <div class="py-10 text-center">
+            <p class="text-white/20 text-sm">No hay compras registradas</p>
+          </div>
+        } @else {
+          @for (p of purchases(); track p.id; let last = $last) {
+            <div class="flex items-center gap-4 px-5 py-3.5"
+                 [class.border-b]="!last" style="border-color:rgba(255,255,255,0.05)">
+              <div class="flex-1">
+                <p class="text-sm text-white/80">{{ p.items.length }} producto(s)</p>
+                <p class="text-xs text-white/30 mt-0.5">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+              </div>
+              <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                              (p.status === 'COMPLETED'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : 'bg-red-500/10 text-red-400 border-red-500/20')">
+                {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
+              </span>
+              <p class="text-sm font-medium text-white/90 w-24 text-right">
+                ${{ p.total | number:'1.0-2' }}
+              </p>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Proveedor no encontrado</p>
+    </div>
+  }
+</div>

@@ -88,10 +88,26 @@
               <p class="text-xs text-white/25">Sin deuda</p>
             }
           </div>
-          <a [routerLink]="'/suppliers/' + s.id + '/edit'"
-            class="text-xs text-white/30 hover:text-white/60 transition-colors px-2 py-1">
-            Editar
-          </a>
+          <div class="flex items-center gap-1">
+            <a [routerLink]="'/suppliers/' + s.id"
+               title="Ver info"
+               class="p-2 rounded-lg text-white/30 hover:text-indigo-400 hover:bg-white/5 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </a>
+            <a [routerLink]="'/suppliers/' + s.id + '/debts'"
+               title="Ver deudas"
+               class="p-2 rounded-lg transition-colors"
+               [class.text-red-400]="s.debt > 0"
+               [class.text-white]="s.debt <= 0" [class.text-opacity-30]="s.debt <= 0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 7h6m0 10v-3m-3 3v-6m-3 6v-2m-3-1V7a2 2 0 012-2h9l4 4v9a2 2 0 01-2 2H7a2 2 0 01-2-2z"/>
+              </svg>
+            </a>
+          </div>
         </div>
       }
     </div>

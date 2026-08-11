@@ -18,4 +18,7 @@ export class PurchaseService {
   getById(branchId: string, id: string): Observable<Purchase> {
     return this.http.get<Purchase>(`${this.base(branchId)}/${id}`);
   }
+  getBySupplier(branchId: string, supplierId: string): Observable<Purchase[]> {
+    return this.http.get<Purchase[]>(`${this.base(branchId)}/supplier/${supplierId}`);
+  }
 }

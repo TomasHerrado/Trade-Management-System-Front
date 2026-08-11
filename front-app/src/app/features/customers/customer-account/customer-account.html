@@ -98,8 +98,7 @@
               <div class="flex items-center gap-4 px-5 py-3.5"
                    [class.border-b]="!last" style="border-color: rgba(255,255,255,0.05)">
                 <div class="flex-1">
-                  <p class="text-sm text-white/80 font-medium">${{ s.total | number:'1.0-2' }}</p>
-                  <p class="text-xs text-white/30 mt-0.5">{{ s.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                  <p class="text-sm text-white/80 font-medium">{{ s.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
                 </div>
                 <span class="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/40">
                   {{ s.items.length }} producto{{ s.items.length !== 1 ? 's' : '' }}
@@ -114,6 +113,9 @@
                       [class.text-opacity-40]="s.paymentType !== 'ACCOUNT'">
                   {{ s.paymentType === 'ACCOUNT' ? 'Fiado' : s.paymentType }}
                 </span>
+                <p class="text-sm font-medium text-white/90 w-24 text-right">
+                  ${{ s.total | number:'1.0-2' }}
+                </p>
               </div>
             }
           </div>

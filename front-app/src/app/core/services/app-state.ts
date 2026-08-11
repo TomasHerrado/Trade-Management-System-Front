@@ -40,6 +40,11 @@ export class AppStateService {
     this._branch.set(b);
   }
 
+  clearBranch(): void {
+    localStorage.removeItem(this.BRANCH_KEY);
+    this._branch.set(null);
+  }
+
   clear(): void {
     localStorage.removeItem(this.COMMERCE_KEY);
     localStorage.removeItem(this.BRANCH_KEY);

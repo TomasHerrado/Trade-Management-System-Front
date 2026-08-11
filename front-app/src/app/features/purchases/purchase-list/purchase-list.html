@@ -45,18 +45,20 @@
           <div class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer"
                (click)="expanded.set(expanded() === p.id ? null : p.id)">
             <div>
-              <p class="text-sm font-medium text-white/90">${{ p.total | number:'1.0-2' }}</p>
-              <p class="text-xs text-white/30 mt-0.5">{{ p.createdAt | date:'dd/MM HH:mm' }}</p>
+              <p class="text-sm font-medium text-white/90">{{ p.createdAt | date:'dd/MM HH:mm' }}</p>
+              <p class="text-xs text-white/30 mt-0.5">{{ p.supplierName }}</p>
             </div>
             <div class="flex-1"></div>
-            <span class="text-xs text-white/40">{{ p.supplierName }}</span>
-           <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
-                                (p.status === 'COMPLETED'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                  : 'bg-red-500/10 text-red-400 border-red-500/20')">
-                  {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
-                </span>
-                <div class="flex items-center gap-1">
+            <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                            (p.status === 'COMPLETED'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20')">
+              {{ p.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
+            </span>
+            <p class="text-sm font-medium text-white/90 w-24 text-right">
+              ${{ p.total | number:'1.0-2' }}
+            </p>
+            <div class="flex items-center gap-1">
               <button (click)="preparePrint(p); $event.stopPropagation()"
                       title="Imprimir factura"
                       class="p-1.5 rounded-lg text-white/20 hover:text-indigo-400 hover:bg-white/5 transition-colors">

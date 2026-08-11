@@ -45,13 +45,12 @@
           <div class="flex items-center gap-4 px-5 py-4 hover:bg-white/3 transition-colors cursor-pointer"
                (click)="expanded.set(expanded() === s.id ? null : s.id)">
             <div>
-              <p class="text-sm font-medium text-white/90">${{ s.total | number:'1.0-2' }}</p>
-              <p class="text-xs text-white/30 mt-0.5">{{ s.createdAt | date:'dd/MM HH:mm' }}</p>
+              <p class="text-sm font-medium text-white/90">{{ s.createdAt | date:'dd/MM HH:mm' }}</p>
+              @if (s.customerName) {
+                <p class="text-xs text-white/30 mt-0.5">{{ s.customerName }}</p>
+              }
             </div>
             <div class="flex-1"></div>
-            @if (s.customerName) {
-              <span class="text-xs text-white/40">{{ s.customerName }}</span>
-            }
             <span class="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/50">
               {{ paymentLabel[s.paymentType] }}
             </span>
@@ -61,6 +60,9 @@
                               : 'bg-red-500/10 text-red-400 border-red-500/20')">
               {{ s.status === 'COMPLETED' ? 'Completada' : 'Cancelada' }}
             </span>
+            <p class="text-sm font-medium text-white/90 w-24 text-right">
+              ${{ s.total | number:'1.0-2' }}
+            </p>
             <a [routerLink]="'/sales/' + s.id" (click)="$event.stopPropagation()"
                title="Ver detalle"
                class="p-1.5 rounded-lg text-white/30 hover:text-indigo-400 hover:bg-white/5 transition-colors">

@@ -4,6 +4,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/rou
 import { AuthService } from '../../../core/services/auth';
 import { AppStateService } from '../../../core/services/app-state';
 import { RoleService } from '../../../core/services/role';
+import { NotificationService } from '../../../core/services/notification';
 
 @Component({
   selector: 'app-shell',
@@ -15,6 +16,7 @@ export class ShellComponent {
   auth     = inject(AuthService);
   appState = inject(AppStateService);
   role     = inject(RoleService);
+  notify   = inject(NotificationService);
   router   = inject(Router);
 
   sidebarOpen = signal(true);

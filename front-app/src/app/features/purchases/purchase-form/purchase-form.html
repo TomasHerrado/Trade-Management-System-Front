@@ -102,7 +102,7 @@
                       <input [value]="editingCost[item.variant.id]"
                              (input)="updateCost(item.variant.id, $any($event.target).value)"
                              class="w-20 px-2 py-1 rounded bg-white/5 border border-white/10 text-xs
-                                    text-white/80 focus:outline-none focus:border-amber-500/50 transition-all"/>
+                                    text-white/80 text-right focus:outline-none focus:border-amber-500/50 transition-all"/>
                     </div>
                     <span class="text-xs text-amber-400 ml-auto">${{ (item.unitCost * item.qty) | number:'1.0-2' }}</span>
                   </div>

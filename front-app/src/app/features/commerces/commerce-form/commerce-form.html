@@ -5,7 +5,9 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
       </svg>
     </a>
-    <h1 class="text-xl font-semibold text-white/90">Nuevo Comercio</h1>
+    <h1 class="text-xl font-semibold text-white/90">
+      {{ editId() ? 'Editar Comercio' : 'Nuevo Comercio' }}
+    </h1>
   </div>
 
   @if (error()) {
@@ -14,6 +16,11 @@
     </div>
   }
 
+@if (loadingData()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else {
   <div class="rounded-xl border border-white/5 p-6" style="background:#1a1a1a;">
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-5">
 
@@ -73,8 +80,13 @@
       <button type="submit" [disabled]="loading()"
               class="w-full py-2.5 rounded-lg bg-indigo-500 text-white text-sm font-medium
                      hover:bg-indigo-600 disabled:opacity-50 transition-colors mt-2">
-        @if (loading()) { Creando... } @else { Crear Comercio }
+        @if (loading()) {
+          {{ editId() ? 'Guardando...' : 'Creando...' }}
+        } @else {
+          {{ editId() ? 'Guardar Cambios' : 'Crear Comercio' }}
+        }
       </button>
     </form>
   </div>
+  }
 </div>

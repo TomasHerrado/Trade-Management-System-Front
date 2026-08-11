@@ -1,5 +1,24 @@
 <div class="flex h-screen bg-[#0f0f0f] font-['DM_Sans',sans-serif] overflow-hidden">
 
+   @if (notify.message()) {
+    <div class="fixed top-4 right-4 z-50 max-w-sm rounded-lg border border-red-500/20 bg-red-500/10
+                px-4 py-3 flex items-start gap-3 shadow-lg" style="backdrop-filter: blur(8px);">
+      <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+      </svg>
+      <div class="flex-1">
+        <p class="text-xs font-medium text-red-400">No autorizado</p>
+        <p class="text-xs text-red-400/70 mt-0.5">{{ notify.message() }}</p>
+      </div>
+      <button (click)="notify.clear()" class="text-red-400/50 hover:text-red-400 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+
   <!-- Sidebar -->
   <aside
     class="flex flex-col transition-all duration-300 ease-in-out border-r border-white/5"

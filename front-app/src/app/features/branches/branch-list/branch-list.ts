@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { BranchService } from '../../../core/services/branch';
 import { AppStateService } from '../../../core/services/app-state';
+import { RoleService } from '../../../core/services/role';
 import { Branch } from '../../../core/models/branch.model';
 
 @Component({
@@ -16,6 +17,7 @@ export class BranchList implements OnInit {
   private svc      = inject(BranchService);
   private route    = inject(ActivatedRoute);
   appState         = inject(AppStateService);
+  role             = inject(RoleService);
   private fb       = inject(FormBuilder);
 
   commerceId = '';
@@ -37,7 +39,13 @@ export class BranchList implements OnInit {
 
   load(): void {
     this.svc.getByCommerce(this.commerceId).subscribe({
-      next: d => { this.branches.set(d); this.loading.set(false); },
+      next: d => {
+        const filtered = this.role.isEmployee()
+          ? d.filter(b => this.role.myBranches().some(mb => mb.id === b.id))
+          : d;
+        this.branches.set(filtered);
+        this.loading.set(false);
+      },
       error: () => this.loading.set(false)
     });
   }

@@ -1,4 +1,5 @@
 export type PurchaseStatus = 'COMPLETED' | 'CANCELLED';
+export type PaymentType = 'CASH' | 'CARD' | 'TRANSFER' | 'MIXED' | 'ACCOUNT';
 
 export interface PurchaseItem {
   id: string;
@@ -18,6 +19,7 @@ export interface Purchase {
   supplierName: string;
   userName: string;
   total: number;
+  paymentType: PaymentType;
   status: PurchaseStatus;
   note?: string;
   items: PurchaseItem[];
@@ -32,6 +34,7 @@ export interface PurchaseItemRequest {
 
 export interface PurchaseRequest {
   supplierId: string;
+  paymentType: PaymentType;
   items: PurchaseItemRequest[];
   note?: string;
 }

@@ -117,38 +117,54 @@
         </div>
 
         <!-- Proveedor + nota -->
-        <div class="rounded-xl border border-white/5 p-4 space-y-4" style="background:#1a1a1a;">
-          <div>
-            <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Proveedor *</p>
-            <select (change)="supplierId.set($any($event.target).value || null)"
-                    class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
-                           text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
-              <option value="">Seleccioná un proveedor</option>
-              @for (s of suppliers(); track s.id) {
-                <option [value]="s.id">{{ s.name }}</option>
-              }
-            </select>
-          </div>
+<div class="rounded-xl border border-white/5 p-4 space-y-4" style="background:#1a1a1a;">
+  <div>
+    <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Proveedor *</p>
+    <select (change)="supplierId.set($any($event.target).value || null)"
+            class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                   text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
+      <option value="">Seleccioná un proveedor</option>
+      @for (s of suppliers(); track s.id) {
+        <option [value]="s.id">{{ s.name }}</option>
+      }
+    </select>
+  </div>
 
-          <div>
-            <textarea [value]="note()" (input)="note.set($any($event.target).value)"
-                      rows="2" placeholder="Nota opcional..."
-                      class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
-                             text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50
-                             resize-none transition-all">
-            </textarea>
-          </div>
+  <div>
+    <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Forma de pago *</p>
+    <select [value]="paymentType()" (change)="paymentType.set($any($event.target).value)"
+            class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                   text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
+      @for (opt of paymentOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+    @if (paymentType() === 'ACCOUNT') {
+      <p class="text-[11px] text-amber-400/80 mt-1.5">
+        Esta compra va a sumarse a la deuda con el proveedor.
+      </p>
+    }
+  </div>
 
-          @if (error()) {
-            <p class="text-xs text-red-400">{{ error() }}</p>
-          }
+  <div>
+    <textarea [value]="note()" (input)="note.set($any($event.target).value)"
+              rows="2" placeholder="Nota opcional..."
+              class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                     text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50
+                     resize-none transition-all">
+    </textarea>
+  </div>
 
-          <button (click)="submit()" [disabled]="saving() || cart().length === 0"
-                  class="w-full py-3 rounded-lg bg-amber-500 text-white text-sm font-medium
-                         hover:bg-amber-600 disabled:opacity-40 transition-colors">
-            {{ saving() ? 'Registrando...' : 'Confirmar Compra — $' + (total() | number:'1.0-2') }}
-          </button>
-        </div>
+  @if (error()) {
+    <p class="text-xs text-red-400">{{ error() }}</p>
+  }
+
+  <button (click)="submit()" [disabled]="saving() || cart().length === 0"
+          class="w-full py-3 rounded-lg bg-amber-500 text-white text-sm font-medium
+                 hover:bg-amber-600 disabled:opacity-40 transition-colors">
+    {{ saving() ? 'Registrando...' : 'Confirmar Compra — $' + (total() | number:'1.0-2') }}
+  </button>
+</div>
       </div>
     </div>
   }

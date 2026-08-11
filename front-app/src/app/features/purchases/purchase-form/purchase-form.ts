@@ -8,7 +8,7 @@ import { SupplierService } from '../../../core/services/supplier';
 import { AppStateService } from '../../../core/services/app-state';
 import { ProductVariant } from '../../../core/models/product.model';
 import { Supplier } from '../../../core/models/supplier.model';
-import { PurchaseItemRequest } from '../../../core/models/purchase.model';
+import { PurchaseItemRequest, PaymentType } from '../../../core/models/purchase.model';
 
 interface CartItem { variant: ProductVariant; qty: number; unitCost: number; }
 
@@ -35,7 +35,16 @@ export class PurchaseForm implements OnInit {
   search     = signal('');
 
   supplierId  = signal<string | null>(null);
+  paymentType = signal<PaymentType>('CASH');
   note        = signal('');
+
+  paymentOptions: { value: PaymentType; label: string }[] = [
+    { value: 'CASH', label: 'Efectivo' },
+    { value: 'CARD', label: 'Tarjeta' },
+    { value: 'TRANSFER', label: 'Transferencia' },
+    { value: 'MIXED', label: 'Mixto' },
+    { value: 'ACCOUNT', label: 'Cuenta corriente (queda a deber)' },
+  ];
 
   // Para editar el costo de cada item en carrito
   editingCost: Record<string, string> = {};
@@ -111,6 +120,7 @@ export class PurchaseForm implements OnInit {
     }));
     this.purchaseSvc.create(bId, {
       supplierId: this.supplierId()!,
+      paymentType: this.paymentType(),
       items,
       note: this.note() || undefined
     }).subscribe({

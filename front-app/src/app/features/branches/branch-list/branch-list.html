@@ -16,6 +16,12 @@
     }
   </div>
 
+  @if (error()) {
+    <div class="mb-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+      {{ error() }}
+    </div>
+  }
+
   @if (showForm()) {
     <div class="rounded-xl border border-indigo-500/30 p-5 mb-5" style="background:#1a1a1a;">
       <h3 class="text-sm font-medium text-white/70 mb-4">Nueva Sucursal</h3>
@@ -58,8 +64,9 @@
     <div class="grid gap-3">
       @for (b of branches(); track b.id) {
         <div (click)="selectBranch(b)"
-             class="rounded-xl border p-4 cursor-pointer transition-all duration-150 flex items-center justify-between"
-             [class.border-indigo-500]="isActive(b)"
+             class="rounded-xl border p-4 transition-all duration-150 flex items-center justify-between"
+             [class.cursor-pointer]="b.status === 'ACTIVE'"
+             [class.border-indigo-500]="isSelected(b)"
              style="background:#1a1a1a;">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center">
@@ -76,9 +83,32 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            @if (isActive(b)) {
-              <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400">Activa</span>
+            @if (isSelected(b)) {
+              <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400">En uso</span>
             }
+            <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
+                            (b.status === 'ACTIVE'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20')">
+              {{ b.status === 'ACTIVE' ? 'Activa' : 'Inactiva' }}
+            </span>
+
+            @if (b.status !== 'ACTIVE' && role.isOwner()) {
+              <button (click)="activateBranch(b, $event)"
+                      [disabled]="activatingId() === b.id"
+                      title="Activar sucursal"
+                      class="p-1.5 rounded-lg text-white/30 hover:text-emerald-400 hover:bg-white/5
+                             disabled:opacity-50 transition-colors">
+                @if (activatingId() === b.id) {
+                  <div class="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                } @else {
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                }
+              </button>
+            }
+
             @if (role.isAdmin()) {
               <a [routerLink]="['/commerces', commerceId, 'branches', b.id, 'edit']"
                  (click)="$event.stopPropagation()"
@@ -90,9 +120,59 @@
                 </svg>
               </a>
             }
+
+            @if (role.isOwner()) {
+              <button (click)="openDeleteConfirm(b, $event)"
+                      [disabled]="deletingId() === b.id"
+                      title="Eliminar sucursal"
+                      class="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10
+                             disabled:opacity-50 transition-colors">
+                @if (deletingId() === b.id) {
+                  <div class="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                } @else {
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                }
+              </button>
+            }
           </div>
         </div>
       }
+    </div>
+  }
+
+  @if (confirmingBranch(); as b) {
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+         (click)="closeDeleteConfirm()">
+      <div class="rounded-xl border border-white/10 p-6 max-w-sm w-full" style="background:#1a1a1a;"
+           (click)="$event.stopPropagation()">
+        <p class="text-sm font-medium text-white/90 mb-2">"{{ b.name }}"</p>
+        <p class="text-xs text-white/40 mb-5">
+          @if (b.status === 'ACTIVE') {
+            ¿Querés eliminar la sucursal definitivamente o solo desactivarla? Al desactivarla se conserva su historial y no aparecerá disponible.
+          } @else {
+            Esta acción elimina la sucursal de forma permanente y no se puede deshacer.
+          }
+        </p>
+        <div class="flex flex-col gap-2">
+          @if (b.status === 'ACTIVE') {
+            <button (click)="confirmDeactivate()"
+                    class="w-full py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm font-medium hover:bg-white/10 transition-colors">
+              Desactivar
+            </button>
+          }
+          <button (click)="confirmDelete()"
+                  class="w-full py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors">
+            Eliminar definitivamente
+          </button>
+          <button (click)="closeDeleteConfirm()"
+                  class="w-full py-2 rounded-lg text-white/40 text-xs hover:text-white/60 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

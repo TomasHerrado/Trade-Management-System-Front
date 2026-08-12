@@ -15,7 +15,8 @@ export const DASHBOARD_ROUTES: Routes = [
       { path: 'commerces/:id/edit', canActivate: [ownerGuard], loadComponent: () => import('../commerces/commerce-form/commerce-form').then(m => m.CommerceForm) },
       { path: 'commerces/:id', canActivate: [ownerGuard], loadComponent: () => import('../commerces/commerce-detail/commerce-detail').then(m => m.CommerceDetail) },
       { path: 'commerces/:commerceId/branches', loadComponent: () => import('../branches/branch-list/branch-list').then(m => m.BranchList) },
-      
+      { path: 'commerces/:commerceId/branches/:id/edit', canActivate: [adminGuard], loadComponent: () => import('../branches/branch-form/branch-form').then(m => m.BranchForm) },
+
       // Gestión del equipo — solo OWNER
       { path: 'team', canActivate: [ownerGuard], loadComponent: () => import('../team/team-list/team-list').then(m => m.TeamList) },
 

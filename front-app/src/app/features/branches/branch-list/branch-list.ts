@@ -26,6 +26,11 @@ export class BranchList implements OnInit {
   showForm   = signal(false);
   saving     = signal(false);
 
+  deletingId       = signal<string | null>(null);
+  activatingId     = signal<string | null>(null);
+  confirmingBranch = signal<Branch | null>(null);
+  error            = signal('');
+
   form = this.fb.group({
     name:    ['', Validators.required],
     address: [''],
@@ -60,10 +65,83 @@ export class BranchList implements OnInit {
   }
 
   selectBranch(b: Branch): void {
+    if (b.status !== 'ACTIVE') return;
     this.appState.setBranch(b);
   }
 
-  isActive(b: Branch): boolean {
+  isSelected(b: Branch): boolean {
     return this.appState.branch()?.id === b.id;
+  }
+
+  openDeleteConfirm(b: Branch, event: Event): void {
+    event.stopPropagation();
+    this.confirmingBranch.set(b);
+  }
+
+  closeDeleteConfirm(): void {
+    this.confirmingBranch.set(null);
+  }
+
+  confirmDeactivate(): void {
+    const b = this.confirmingBranch();
+    if (!b) return;
+
+    this.confirmingBranch.set(null);
+    this.deletingId.set(b.id);
+    this.error.set('');
+
+    this.svc.deactivate(this.commerceId, b.id).subscribe({
+      next: () => {
+        if (this.appState.branch()?.id === b.id) this.appState.clearBranch();
+        this.branches.update(list =>
+          list.map(x => x.id === b.id ? { ...x, status: 'INACTIVE' } : x)
+        );
+        this.deletingId.set(null);
+      },
+      error: () => {
+        this.error.set('No se pudo desactivar la sucursal');
+        this.deletingId.set(null);
+      }
+    });
+  }
+
+  confirmDelete(): void {
+    const b = this.confirmingBranch();
+    if (!b) return;
+
+    this.confirmingBranch.set(null);
+    this.deletingId.set(b.id);
+    this.error.set('');
+
+    this.svc.delete(this.commerceId, b.id).subscribe({
+      next: () => {
+        if (this.appState.branch()?.id === b.id) this.appState.clearBranch();
+        this.branches.update(list => list.filter(x => x.id !== b.id));
+        this.deletingId.set(null);
+      },
+      error: (e) => {
+        this.error.set(e.error?.message ?? 'No se pudo eliminar la sucursal');
+        this.deletingId.set(null);
+      }
+    });
+  }
+
+  activateBranch(b: Branch, event: Event): void {
+    event.stopPropagation();
+    this.activatingId.set(b.id);
+    this.error.set('');
+
+    this.svc.activate(this.commerceId, b.id).subscribe({
+      next: () => {
+        this.branches.update(list =>
+          list.map(x => x.id === b.id ? { ...x, status: 'ACTIVE' } : x)
+        );
+        this.activatingId.set(null);
+      },
+      error: () => {
+        this.error.set('No se pudo activar la sucursal');
+        this.activatingId.set(null);
+      }
+    });
   }
 }

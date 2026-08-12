@@ -24,6 +24,11 @@ export class CommerceService {
   deactivate(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+  activate(id: string): Observable<Commerce> {
+    return this.http.patch<Commerce>(`${this.base}/${id}/activate`, {});
+  }
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}/permanent`);
+  }
 }
 export type { Commerce };
-

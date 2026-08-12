@@ -24,4 +24,10 @@ export class BranchService {
   deactivate(commerceId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.base(commerceId)}/${id}`);
   }
+  activate(commerceId: string, id: string): Observable<Branch> {
+    return this.http.patch<Branch>(`${this.base(commerceId)}/${id}/activate`, {});
+  }
+  delete(commerceId: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(commerceId)}/${id}/permanent`);
+  }
 }

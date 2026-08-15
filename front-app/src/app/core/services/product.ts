@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Product, ProductRequest, ProductVariant, ProductVariantRequest, Category, CategoryRequest } from '../models/product.model';
+import { BulkPriceUpdateRequest, BulkPriceUpdateResponse } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -13,9 +14,13 @@ export class ProductService {
   create(commerceId: string, req: ProductRequest): Observable<Product> {
     return this.http.post<Product>(this.base(commerceId), req);
   }
-  getByCommerce(commerceId: string): Observable<Product[]> {
-    return this.http.get<Product[]>(this.base(commerceId));
+  getByCommerce(commerceId: string, supplierId?: string): Observable<Product[]> {
+    const url = supplierId
+      ? `${this.base(commerceId)}?supplierId=${supplierId}`
+      : this.base(commerceId);
+    return this.http.get<Product[]>(url);
   }
+  
   getById(commerceId: string, id: string): Observable<Product> {
     return this.http.get<Product>(`${this.base(commerceId)}/${id}`);
   }
@@ -58,5 +63,9 @@ export class ProductService {
 
   delete(commerceId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.base(commerceId)}/${id}/permanent`);
+  }
+
+  bulkPriceUpdate(commerceId: string, req: BulkPriceUpdateRequest): Observable<BulkPriceUpdateResponse> {
+    return this.http.post<BulkPriceUpdateResponse>(`${this.base(commerceId)}/bulk-price-update`, req);
   }
 }

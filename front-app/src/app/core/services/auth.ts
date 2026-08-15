@@ -37,6 +37,10 @@ export class AuthService {
       .pipe(tap(res => this.storeSession(res)));
   }
 
+  registerUser(req: UserRegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, req);
+  }
+
   forgotPassword(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
       `${environment.apiUrl}/auth/forgot-password`,

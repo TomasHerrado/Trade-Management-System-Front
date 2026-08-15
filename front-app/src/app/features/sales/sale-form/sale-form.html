@@ -82,11 +82,16 @@
                   <div class="flex items-center gap-1.5">
                     <button (click)="updateQty(item.variant.id, item.qty - 1)"
                             class="w-6 h-6 rounded flex items-center justify-center bg-white/5
-                                   text-white/50 hover:bg-white/10 transition-colors text-xs">−</button>
-                    <span class="text-sm text-white/80 w-5 text-center">{{ item.qty }}</span>
+                                  text-white/50 hover:bg-white/10 transition-colors text-xs">−</button>
+                    <input type="text" inputmode="numeric"
+                          [value]="editingQty[item.variant.id]"
+                          (input)="onQtyInput(item.variant.id, $any($event.target).value)"
+                          (blur)="onQtyBlur(item.variant.id)"
+                          class="w-9 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-white/80 text-sm
+                                  text-center focus:outline-none focus:border-indigo-500/50 transition-all"/>
                     <button (click)="updateQty(item.variant.id, item.qty + 1)"
                             class="w-6 h-6 rounded flex items-center justify-center bg-white/5
-                                   text-white/50 hover:bg-white/10 transition-colors text-xs">+</button>
+                                  text-white/50 hover:bg-white/10 transition-colors text-xs">+</button>
                   </div>
                   <span class="text-xs text-white/50 w-16 text-right">
                     ${{ (item.variant.price * item.qty) | number:'1.0-2' }}

@@ -37,6 +37,7 @@ export class PurchaseForm implements OnInit {
   supplierId  = signal<string | null>(null);
   paymentType = signal<PaymentType>('CASH');
   note        = signal('');
+  editingQty: Record<string, string> = {};
 
   paymentOptions: { value: PaymentType; label: string }[] = [
     { value: 'CASH', label: 'Efectivo' },
@@ -63,14 +64,27 @@ export class PurchaseForm implements OnInit {
   ngOnInit(): void {
     const cId = this.appState.commerce()?.id;
     if (!cId) { this.loading.set(false); return; }
-
     this.supplierSvc.getByCommerce(cId).subscribe(d => this.suppliers.set(d));
+    this.loading.set(false); // ya no esperamos variantes acá
+  }
 
-    this.productSvc.getByCommerce(cId).subscribe(products => {
+  onSupplierChange(id: string | null): void {
+    this.supplierId.set(id);
+    this.cart.set([]);
+    this.editingCost = {};
+    this.editingQty = {};
+    this.variants.set([]);
+    if (!id) return;
+
+    const cId = this.appState.commerce()?.id;
+    if (!cId) return;
+
+    this.loading.set(true);
+    this.productSvc.getByCommerce(cId, id).subscribe(products => {
       const calls = products.map(p => this.productSvc.getVariants(cId, p.id));
+      if (calls.length === 0) { this.variants.set([]); this.loading.set(false); return; }
       let done = 0;
       const all: ProductVariant[] = [];
-      if (calls.length === 0) { this.loading.set(false); return; }
       calls.forEach(obs => obs.subscribe(vv => {
         all.push(...vv);
         done++;
@@ -82,16 +96,37 @@ export class PurchaseForm implements OnInit {
   addToCart(v: ProductVariant): void {
     const existing = this.cart().find(i => i.variant.id === v.id);
     if (existing) {
-      this.cart.update(c => c.map(i => i.variant.id === v.id ? { ...i, qty: i.qty + 1 } : i));
+      const qty = existing.qty + 1;
+      this.cart.update(c => c.map(i => i.variant.id === v.id ? { ...i, qty } : i));
+      this.editingQty[v.id] = String(qty);
     } else {
       this.cart.update(c => [...c, { variant: v, qty: 1, unitCost: Number(v.cost) }]);
       this.editingCost[v.id] = String(v.cost);
+      this.editingQty[v.id] = '1';
     }
   }
 
   updateQty(id: string, qty: number): void {
     if (qty < 1) { this.removeFromCart(id); return; }
     this.cart.update(c => c.map(i => i.variant.id === id ? { ...i, qty } : i));
+    this.editingQty[id] = String(qty);
+  }
+
+  onQtyInput(id: string, value: string): void {
+    this.editingQty[id] = value;
+    const val = parseInt(value, 10);
+    if (!isNaN(val) && val >= 1) {
+      this.cart.update(c => c.map(i => i.variant.id === id ? { ...i, qty: val } : i));
+    }
+  }
+
+  onQtyBlur(id: string): void {
+    const item = this.cart().find(i => i.variant.id === id);
+    if (!item) return;
+    const val = parseInt(this.editingQty[id], 10);
+    if (isNaN(val) || val < 1) {
+      this.editingQty[id] = String(item.qty);
+    }
   }
 
   updateCost(id: string, cost: string): void {
@@ -105,6 +140,7 @@ export class PurchaseForm implements OnInit {
   removeFromCart(id: string): void {
     this.cart.update(c => c.filter(i => i.variant.id !== id));
     delete this.editingCost[id];
+    delete this.editingQty[id];
   }
 
   submit(): void {

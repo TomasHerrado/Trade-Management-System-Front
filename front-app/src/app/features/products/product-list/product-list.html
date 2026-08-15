@@ -10,6 +10,20 @@
                placeholder="Buscar..."
                class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 text-sm
                       placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 w-48 transition-all"/>
+
+        @if (suppliers().length > 0) {
+          <button (click)="openBulkUpdate()"
+                  title="Actualizar precios por proveedor"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 text-sm
+                         font-medium hover:bg-white/10 hover:text-white/90 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+            Actualizar precios
+          </button>
+        }
+
         <a routerLink="/products/new"
          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm
             font-medium hover:bg-indigo-600 transition-colors">
@@ -49,8 +63,12 @@
             <div class="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-sm">📦</div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-white/90">{{ p.name }}</p>
-              @if (p.categoryName) {
-                <p class="text-xs text-white/30 mt-0.5">{{ p.categoryName }}</p>
+              @if (p.categoryName || p.supplierName) {
+                <p class="text-xs text-white/30 mt-0.5">
+                  {{ p.categoryName }}
+                  @if (p.categoryName && p.supplierName) { <span> · </span> }
+                  @if (p.supplierName) { <span>{{ p.supplierName }}</span> }
+                </p>
               }
             </div>
             <span [class]="'text-xs px-2.5 py-1 rounded-full border ' +
@@ -139,6 +157,8 @@
       }
     </div>
   }
+
+  <!-- Modal: eliminar / desactivar -->
   @if (confirmingProduct(); as p) {
     <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
          (click)="closeDeleteConfirm()">
@@ -167,6 +187,94 @@
                   class="w-full py-2 rounded-lg text-white/40 text-xs hover:text-white/60 transition-colors">
             Cancelar
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: actualización masiva de precios por proveedor -->
+  @if (showBulkUpdate()) {
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+         (click)="closeBulkUpdate()">
+      <div class="rounded-xl border border-white/10 p-6 max-w-sm w-full" style="background:#1a1a1a;"
+           (click)="$event.stopPropagation()">
+        <p class="text-sm font-medium text-white/90 mb-1">Actualizar precios por proveedor</p>
+        <p class="text-xs text-white/40 mb-5">
+          Aplica un aumento (o descuento) porcentual a todas las variantes de los productos de un proveedor.
+        </p>
+
+        @if (bulkResult()) {
+          <div class="mb-4 px-3 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
+            {{ bulkResult() }}
+          </div>
+        }
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs text-white/40 mb-1.5">Proveedor *</label>
+            <select [value]="bulkSupplierId() ?? ''"
+                    (change)="bulkSupplierId.set($any($event.target).value || null)"
+                    [disabled]="bulkSaving()"
+                    class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                           text-sm focus:outline-none focus:border-indigo-500/50 transition-all disabled:opacity-50">
+              <option value="">Seleccioná un proveedor</option>
+              @for (s of suppliers(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-white/40 mb-1.5">Porcentaje *</label>
+            <div class="relative">
+              <input type="number" step="0.01"
+                     [value]="bulkPercentage()"
+                     (input)="bulkPercentage.set($any($event.target).value ? +$any($event.target).value : null)"
+                     [disabled]="bulkSaving()"
+                     placeholder="ej: 5 (o -10 para bajar)"
+                     class="w-full px-3 py-2 pr-8 rounded-lg bg-white/5 border border-white/10 text-white/90
+                            text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all disabled:opacity-50"/>
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">%</span>
+            </div>
+            <p class="text-[11px] text-white/25 mt-1">Usá un número negativo para aplicar una baja.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-white/40 mb-1.5">Aplicar a</label>
+            <div class="grid grid-cols-3 gap-2">
+              @for (opt of bulkTargetOptions; track opt.value) {
+                <button type="button" (click)="bulkTarget.set(opt.value)"
+                        [disabled]="bulkSaving()"
+                        class="px-2 py-2 rounded-lg text-xs transition-all border disabled:opacity-50"
+                        [class.border-indigo-500]="bulkTarget() === opt.value"
+                        [class.text-indigo-400]="bulkTarget() === opt.value"
+                        [class.bg-indigo-500]="bulkTarget() === opt.value"
+                        [class.bg-opacity-10]="bulkTarget() === opt.value"
+                        [class.border-white]="bulkTarget() !== opt.value"
+                        [class.border-opacity-5]="bulkTarget() !== opt.value"
+                        [class.text-white]="bulkTarget() !== opt.value"
+                        [class.text-opacity-40]="bulkTarget() !== opt.value">
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (bulkError()) {
+            <p class="text-xs text-red-400">{{ bulkError() }}</p>
+          }
+
+          <div class="flex flex-col gap-2 pt-1">
+            <button (click)="submitBulkUpdate()" [disabled]="bulkSaving()"
+                    class="w-full py-2.5 rounded-lg bg-indigo-500 text-white text-sm font-medium
+                           hover:bg-indigo-600 disabled:opacity-50 transition-colors">
+              {{ bulkSaving() ? 'Aplicando...' : 'Aplicar' }}
+            </button>
+            <button (click)="closeBulkUpdate()" [disabled]="bulkSaving()"
+                    class="w-full py-2 rounded-lg text-white/40 text-xs hover:text-white/60 transition-colors disabled:opacity-50">
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -36,6 +36,7 @@ export class SaleForm implements OnInit {
   paymentType = signal<PaymentType>('CASH');
   customerId  = signal<string | null>(null);
   note        = signal('');
+  editingQty: Record<string, string> = {};
 
   paymentTypes: { value: PaymentType; label: string; emoji: string }[] = [
     { value: 'CASH',     label: 'Efectivo',     emoji: '💵' },
@@ -75,22 +76,42 @@ export class SaleForm implements OnInit {
   }
 
   addToCart(v: ProductVariant): void {
-    const existing = this.cart().find(i => i.variant.id === v.id);
-    if (existing) {
-      this.cart.update(c => c.map(i => i.variant.id === v.id ? { ...i, qty: i.qty + 1 } : i));
-    } else {
-      this.cart.update(c => [...c, { variant: v, qty: 1 }]);
-    }
+  const existing = this.cart().find(i => i.variant.id === v.id);
+  if (existing) {
+    const qty = existing.qty + 1;
+    this.cart.update(c => c.map(i => i.variant.id === v.id ? { ...i, qty } : i));
+    this.editingQty[v.id] = String(qty);
+  } else {
+    this.cart.update(c => [...c, { variant: v, qty: 1 }]);
+    this.editingQty[v.id] = '1';
   }
+}
 
   updateQty(id: string, qty: number): void {
-    if (qty < 1) { this.removeFromCart(id); return; }
-    this.cart.update(c => c.map(i => i.variant.id === id ? { ...i, qty } : i));
+  if (qty < 1) { this.removeFromCart(id); return; }
+  this.cart.update(c => c.map(i => i.variant.id === id ? { ...i, qty } : i));
+  this.editingQty[id] = String(qty);
+}
+onQtyInput(id: string, value: string): void {
+  this.editingQty[id] = value;
+  const val = parseInt(value, 10);
+  if (!isNaN(val) && val >= 1) {
+    this.cart.update(c => c.map(i => i.variant.id === id ? { ...i, qty: val } : i));
   }
+}
+onQtyBlur(id: string): void {
+  const item = this.cart().find(i => i.variant.id === id);
+  if (!item) return;
+  const val = parseInt(this.editingQty[id], 10);
+  if (isNaN(val) || val < 1) {
+    this.editingQty[id] = String(item.qty); // si el usuario deja el campo inválido, vuelve al último valor válido
+  }
+}
 
   removeFromCart(id: string): void {
-    this.cart.update(c => c.filter(i => i.variant.id !== id));
-  }
+  this.cart.update(c => c.filter(i => i.variant.id !== id));
+  delete this.editingQty[id];
+}
 
   submit(): void {
     if (this.cart().length === 0) { this.error.set('Agregá al menos un producto'); return; }

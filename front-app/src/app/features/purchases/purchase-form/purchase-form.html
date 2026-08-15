@@ -13,48 +13,76 @@
       Necesitás seleccionar un comercio y una sucursal antes de registrar compras.
     </div>
   } @else {
+
+    <!-- Proveedor: primer paso, define qué productos se pueden ver -->
+    <div class="rounded-xl border border-white/5 p-5 mb-6" style="background:#1a1a1a;">
+      <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Proveedor *</p>
+      <select [value]="supplierId() ?? ''"
+              (change)="onSupplierChange($any($event.target).value || null)"
+              class="w-full max-w-sm px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                     text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
+        <option value="">Seleccioná un proveedor</option>
+        @for (s of suppliers(); track s.id) {
+          <option [value]="s.id">{{ s.name }}</option>
+        }
+      </select>
+      @if (!supplierId()) {
+        <p class="text-[11px] text-white/30 mt-1.5">Elegí un proveedor para ver los productos que le comprás.</p>
+      }
+    </div>
+
     <div class="grid grid-cols-5 gap-6">
 
       <!-- Buscador de productos -->
       <div class="col-span-3 flex flex-col gap-4">
-        <input [value]="search()" (input)="search.set($any($event.target).value)"
-               placeholder="Buscar producto o variante..."
-               class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/80
-                      text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
-
-        @if (loading()) {
-          <div class="flex justify-center py-12">
-            <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        @if (!supplierId()) {
+          <div class="rounded-xl border border-white/5 p-10 text-center" style="background:#1a1a1a;">
+            <p class="text-white/20 text-sm">Elegí un proveedor arriba para ver sus productos</p>
           </div>
         } @else {
-          <div class="rounded-xl border border-white/5 overflow-hidden max-h-[480px] overflow-y-auto" style="background:#1a1a1a;">
-            @for (v of filteredVariants(); track v.id) {
-              <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 last:border-0
-                          hover:bg-white/5 transition-colors cursor-pointer group"
-                   (click)="addToCart(v)">
-                <div>
-                  <p class="text-sm text-white/80 group-hover:text-white/95 transition-colors">
-                    {{ v.productName }}
-                    @if (v.name !== 'DEFAULT') {
-                      <span class="text-white/30"> — {{ v.name }}</span>
+          <input [value]="search()" (input)="search.set($any($event.target).value)"
+                 placeholder="Buscar producto o variante..."
+                 class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/80
+                        text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition-all"/>
+
+          @if (loading()) {
+            <div class="flex justify-center py-12">
+              <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          } @else if (variants().length === 0) {
+            <div class="rounded-xl border border-white/5 p-10 text-center" style="background:#1a1a1a;">
+              <p class="text-white/20 text-sm">Este proveedor no tiene productos cargados</p>
+            </div>
+          } @else {
+            <div class="rounded-xl border border-white/5 overflow-hidden max-h-[480px] overflow-y-auto" style="background:#1a1a1a;">
+              @for (v of filteredVariants(); track v.id) {
+                <div class="flex items-center justify-between px-4 py-3 border-b border-white/5 last:border-0
+                            hover:bg-white/5 transition-colors cursor-pointer group"
+                     (click)="addToCart(v)">
+                  <div>
+                    <p class="text-sm text-white/80 group-hover:text-white/95 transition-colors">
+                      {{ v.productName }}
+                      @if (v.name !== 'DEFAULT') {
+                        <span class="text-white/30"> — {{ v.name }}</span>
+                      }
+                    </p>
+                    @if (v.sku) {
+                      <p class="text-xs text-white/25">SKU: {{ v.sku }}</p>
                     }
-                  </p>
-                  @if (v.sku) {
-                    <p class="text-xs text-white/25">SKU: {{ v.sku }}</p>
-                  }
-                </div>
-                <div class="flex items-center gap-3">
-                  <span class="text-xs text-white/30">costo: ${{ v.cost | number:'1.0-2' }}</span>
-                  <div class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center
-                              group-hover:bg-amber-500/40 transition-colors">
-                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                    </svg>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-white/30">costo: ${{ v.cost | number:'1.0-2' }}</span>
+                    <div class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center
+                                group-hover:bg-amber-500/40 transition-colors">
+                      <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
         }
       </div>
 
@@ -91,7 +119,12 @@
                       <button (click)="updateQty(item.variant.id, item.qty - 1)"
                               class="w-6 h-6 rounded flex items-center justify-center bg-white/5
                                      text-white/50 hover:bg-white/10 transition-colors text-xs">−</button>
-                      <span class="text-xs text-white/70 w-5 text-center">{{ item.qty }}</span>
+                      <input type="text" inputmode="numeric"
+                             [value]="editingQty[item.variant.id]"
+                             (input)="onQtyInput(item.variant.id, $any($event.target).value)"
+                             (blur)="onQtyBlur(item.variant.id)"
+                             class="w-9 px-1 py-0.5 rounded bg-white/5 border border-white/10 text-white/80 text-xs
+                                    text-center focus:outline-none focus:border-amber-500/50 transition-all"/>
                       <button (click)="updateQty(item.variant.id, item.qty + 1)"
                               class="w-6 h-6 rounded flex items-center justify-center bg-white/5
                                      text-white/50 hover:bg-white/10 transition-colors text-xs">+</button>
@@ -116,55 +149,43 @@
           }
         </div>
 
-        <!-- Proveedor + nota -->
-<div class="rounded-xl border border-white/5 p-4 space-y-4" style="background:#1a1a1a;">
-  <div>
-    <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Proveedor *</p>
-    <select (change)="supplierId.set($any($event.target).value || null)"
-            class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
-                   text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
-      <option value="">Seleccioná un proveedor</option>
-      @for (s of suppliers(); track s.id) {
-        <option [value]="s.id">{{ s.name }}</option>
-      }
-    </select>
-  </div>
+        <!-- Forma de pago + nota -->
+        <div class="rounded-xl border border-white/5 p-4 space-y-4" style="background:#1a1a1a;">
+          <div>
+            <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Forma de pago *</p>
+            <select [value]="paymentType()" (change)="paymentType.set($any($event.target).value)"
+                    class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                           text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
+              @for (opt of paymentOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+            @if (paymentType() === 'ACCOUNT') {
+              <p class="text-[11px] text-amber-400/80 mt-1.5">
+                Esta compra va a sumarse a la deuda con el proveedor.
+              </p>
+            }
+          </div>
 
-  <div>
-    <p class="text-xs text-white/40 uppercase tracking-wider mb-2">Forma de pago *</p>
-    <select [value]="paymentType()" (change)="paymentType.set($any($event.target).value)"
-            class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
-                   text-sm focus:outline-none focus:border-indigo-500/50 transition-all">
-      @for (opt of paymentOptions; track opt.value) {
-        <option [value]="opt.value">{{ opt.label }}</option>
-      }
-    </select>
-    @if (paymentType() === 'ACCOUNT') {
-      <p class="text-[11px] text-amber-400/80 mt-1.5">
-        Esta compra va a sumarse a la deuda con el proveedor.
-      </p>
-    }
-  </div>
+          <div>
+            <textarea [value]="note()" (input)="note.set($any($event.target).value)"
+                      rows="2" placeholder="Nota opcional..."
+                      class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
+                             text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50
+                             resize-none transition-all">
+            </textarea>
+          </div>
 
-  <div>
-    <textarea [value]="note()" (input)="note.set($any($event.target).value)"
-              rows="2" placeholder="Nota opcional..."
-              class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70
-                     text-sm placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50
-                     resize-none transition-all">
-    </textarea>
-  </div>
+          @if (error()) {
+            <p class="text-xs text-red-400">{{ error() }}</p>
+          }
 
-  @if (error()) {
-    <p class="text-xs text-red-400">{{ error() }}</p>
-  }
-
-  <button (click)="submit()" [disabled]="saving() || cart().length === 0"
-          class="w-full py-3 rounded-lg bg-amber-500 text-white text-sm font-medium
-                 hover:bg-amber-600 disabled:opacity-40 transition-colors">
-    {{ saving() ? 'Registrando...' : 'Confirmar Compra — $' + (total() | number:'1.0-2') }}
-  </button>
-</div>
+          <button (click)="submit()" [disabled]="saving() || cart().length === 0"
+                  class="w-full py-3 rounded-lg bg-amber-500 text-white text-sm font-medium
+                         hover:bg-amber-600 disabled:opacity-40 transition-colors">
+            {{ saving() ? 'Registrando...' : 'Confirmar Compra — $' + (total() | number:'1.0-2') }}
+          </button>
+        </div>
       </div>
     </div>
   }

@@ -1,4 +1,4 @@
-<div class="max-w-xl">
+<div class="max-w-4xl">
   <div class="mb-6">
     <h1 class="text-xl font-semibold text-white/90">Caja</h1>
     <p class="text-sm text-white/30 mt-0.5">Control de apertura y cierre</p>
@@ -20,59 +20,142 @@
       </div>
     }
 
-    @if (!cashRegister() || cashRegister()!.status === 'CLOSED') {
-      <!-- Caja cerrada -->
-      <div class="rounded-xl border border-white/5 p-8 text-center" style="background:#1a1a1a;">
-        <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
-        <h2 class="text-white/80 font-medium mb-1">Caja cerrada</h2>
-        <p class="text-white/30 text-sm mb-6">{{ appState.branch()!.name }}</p>
+    <div class="grid grid-cols-5 gap-6 items-start">
 
-        <form [formGroup]="openForm" (ngSubmit)="openCash()" class="space-y-4 max-w-xs mx-auto">
-          <div>
-            <label class="block text-xs text-white/40 mb-1.5 text-left">Saldo inicial ($)</label>
-            <input formControlName="openingBalance" type="number" min="0" step="0.01"
-                   class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
-                          text-sm focus:outline-none focus:border-emerald-500/50 transition-all text-center"/>
+      <!-- Columna izquierda: estado actual de la caja -->
+      <div class="col-span-3">
+        @if (!cashRegister() || cashRegister()!.status === 'CLOSED') {
+          <!-- Caja cerrada -->
+          <div class="rounded-xl border border-white/5 p-8 text-center" style="background:#1a1a1a;">
+            <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+            <h2 class="text-white/80 font-medium mb-1">Caja cerrada</h2>
+            <p class="text-white/30 text-sm mb-6">{{ appState.branch()!.name }}</p>
+
+            <form [formGroup]="openForm" (ngSubmit)="openCash()" class="space-y-4 max-w-xs mx-auto">
+              <div>
+                <label class="block text-xs text-white/40 mb-1.5 text-left">Saldo inicial ($)</label>
+                <input formControlName="openingBalance" type="number" min="0" step="0.01"
+                       class="w-full px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white/90
+                              text-sm focus:outline-none focus:border-emerald-500/50 transition-all text-center"/>
+              </div>
+              <button type="submit" [disabled]="saving()"
+                      class="w-full py-3 rounded-lg bg-emerald-500 text-white text-sm font-medium
+                             hover:bg-emerald-600 disabled:opacity-50 transition-colors">
+                {{ saving() ? 'Abriendo...' : 'Abrir Caja' }}
+              </button>
+            </form>
           </div>
-          <button type="submit" [disabled]="saving()"
-                  class="w-full py-3 rounded-lg bg-emerald-500 text-white text-sm font-medium
-                         hover:bg-emerald-600 disabled:opacity-50 transition-colors">
-            {{ saving() ? 'Abriendo...' : 'Abrir Caja' }}
-          </button>
-        </form>
+        } @else {
+          <!-- Caja abierta -->
+          <div class="space-y-4">
+            <div class="rounded-xl border border-emerald-500/20 p-6" style="background:#1a1a1a;">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <span class="text-xs text-emerald-400 font-medium uppercase tracking-wider">Caja abierta</span>
+                </div>
+                <span class="text-xs text-white/30">{{ cashRegister()!.openedAt | date:'dd/MM HH:mm' }}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 mb-5">
+                <div class="rounded-lg bg-white/3 p-4">
+                  <p class="text-xs text-white/30 mb-1">Saldo inicial</p>
+                  <p class="text-xl font-semibold text-white/80">${{ cashRegister()!.openingBalance | number:'1.0-2' }}</p>
+                </div>
+                <div class="rounded-lg bg-white/3 p-4">
+                  <p class="text-xs text-white/30 mb-1">Balance actual</p>
+                  <p class="text-xl font-semibold text-emerald-400">${{ cashRegister()!.currentBalance | number:'1.0-2' }}</p>
+                </div>
+              </div>
+
+              <p class="text-xs text-white/30 mb-4">Abierta por: {{ cashRegister()!.openedByName }}</p>
+
+              <button (click)="closeCash()" [disabled]="saving()"
+                      class="w-full py-3 rounded-lg bg-red-500/20 text-red-400 text-sm font-medium
+                             hover:bg-red-500/30 disabled:opacity-50 transition-colors border border-red-500/20">
+                {{ saving() ? 'Cerrando...' : 'Cerrar Caja' }}
+              </button>
+            </div>
+          </div>
+        }
       </div>
-    } @else {
-      <!-- Caja abierta -->
-      <div class="space-y-4">
-        <div class="rounded-xl border border-emerald-500/20 p-6" style="background:#1a1a1a;">
-          <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              <span class="text-xs text-emerald-400 font-medium uppercase tracking-wider">Caja abierta</span>
+
+      <!-- Columna derecha: historial de aperturas/cierres -->
+      <div class="col-span-2">
+        <div class="rounded-xl border border-white/5 p-4" style="background:#1a1a1a;">
+          <p class="text-xs text-white/40 uppercase tracking-wider mb-3">Historial</p>
+
+          <!-- Filtros de fecha -->
+          <div class="flex items-end gap-2 mb-4">
+            <div class="flex-1">
+              <label class="block text-[10px] text-white/30 mb-1">Desde</label>
+              <input type="date" [value]="filterFrom()"
+                     (change)="filterFrom.set($any($event.target).value); applyFilter()"
+                     class="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 text-xs
+                            focus:outline-none focus:border-indigo-500/50 transition-all"/>
             </div>
-            <span class="text-xs text-white/30">{{ cashRegister()!.openedAt | date:'dd/MM HH:mm' }}</span>
+            <div class="flex-1">
+              <label class="block text-[10px] text-white/30 mb-1">Hasta</label>
+              <input type="date" [value]="filterTo()"
+                     (change)="filterTo.set($any($event.target).value); applyFilter()"
+                     class="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 text-xs
+                            focus:outline-none focus:border-indigo-500/50 transition-all"/>
+            </div>
+            @if (filterFrom() || filterTo()) {
+              <button (click)="clearFilter()" title="Limpiar filtro"
+                      class="p-1.5 rounded-lg text-white/20 hover:text-white/60 hover:bg-white/5 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            }
           </div>
 
-          <div class="grid grid-cols-2 gap-4 mb-5">
-            <div class="rounded-lg bg-white/3 p-4">
-              <p class="text-xs text-white/30 mb-1">Saldo inicial</p>
-              <p class="text-xl font-semibold text-white/80">${{ cashRegister()!.openingBalance | number:'1.0-2' }}</p>
+          @if (historyError()) {
+            <div class="mb-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] text-red-400">
+              {{ historyError() }}
             </div>
-            <div class="rounded-lg bg-white/3 p-4">
-              <p class="text-xs text-white/30 mb-1">Balance actual</p>
-              <p class="text-xl font-semibold text-emerald-400">${{ cashRegister()!.currentBalance | number:'1.0-2' }}</p>
+          }
+
+          @if (historyLoading()) {
+            <div class="flex justify-center py-8">
+              <div class="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
-          </div>
-
-          <p class="text-xs text-white/30 mb-4">Abierta por: {{ cashRegister()!.openedByName }}</p>
-
-          <button (click)="closeCash()" [disabled]="saving()"
-                  class="w-full py-3 rounded-lg bg-red-500/20 text-red-400 text-sm font-medium
-                         hover:bg-red-500/30 disabled:opacity-50 transition-colors border border-red-500/20">
-            {{ saving() ? 'Cerrando...' : 'Cerrar Caja' }}
-          </button>
+          } @else if (history().length === 0 && !historyError()) {
+            <p class="text-xs text-white/20 text-center py-6">Sin registros para este período</p>
+          } @else {
+            <div class="space-y-2 max-h-[420px] overflow-y-auto">
+              @for (h of history(); track h.id) {
+                <div class="rounded-lg bg-white/3 px-3 py-2.5">
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-medium text-white/80">{{ h.openedAt | date:'dd/MM/yy HH:mm' }}</span>
+                    <span [class]="'text-[10px] px-2 py-0.5 rounded-full border ' +
+                                    (h.status === 'OPEN'
+                                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                      : 'bg-white/5 text-white/40 border-white/10')">
+                      {{ h.status === 'OPEN' ? 'Abierta' : 'Cerrada' }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] text-white/30">
+                    <span>Apertura: ${{ h.openingBalance | number:'1.0-2' }}</span>
+                    @if (h.status === 'CLOSED') {
+                      <span>Cierre: ${{ h.closingBalance | number:'1.0-2' }}</span>
+                    } @else {
+                      <span>Actual: ${{ h.currentBalance | number:'1.0-2' }}</span>
+                    }
+                  </div>
+                  <p class="text-[10px] text-white/20 mt-1">
+                    Abrió {{ h.openedByName }}
+                    @if (h.closedAt) {
+                      <span> · Cerró {{ h.closedByName }} el {{ h.closedAt | date:'dd/MM/yy HH:mm' }}</span>
+                    }
+                  </p>
+                </div>
+              }
+            </div>
+          }
         </div>
       </div>
-    }
+    </div>
   }
 </div>

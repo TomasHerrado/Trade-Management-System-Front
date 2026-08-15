@@ -1,9 +1,12 @@
 export type ProductStatus = 'ACTIVE' | 'INACTIVE';
+export type PriceUpdateTarget = 'PRICE' | 'COST' | 'BOTH';
 
 export interface Product {
   id: string;
   commerceId: string;
   categoryId?: string;
+  supplierId?: string;
+  supplierName?: string;
   categoryName?: string;
   name: string;
   description?: string;
@@ -29,6 +32,7 @@ export interface ProductRequest {
   description?: string;
   imageUrl?: string;
   categoryId?: string;
+  supplierId?: string;
 }
 
 export interface ProductVariantRequest {
@@ -49,4 +53,14 @@ export interface Category {
 export interface CategoryRequest {
   name: string;
   description?: string;
+}
+
+export interface BulkPriceUpdateRequest {
+  supplierId: string;
+  percentage: number;
+  applyTo: PriceUpdateTarget;
+}
+
+export interface BulkPriceUpdateResponse {
+  updatedCount: number;
 }

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductService } from '../../../core/services/product';
 import { AppStateService } from '../../../core/services/app-state';
+import { SupplierService } from '../../../core/services/supplier';
 
 @Component({
   selector: 'app-product-form',
@@ -16,6 +17,8 @@ export class ProductForm implements OnInit {
   private router = inject(Router);
   private route  = inject(ActivatedRoute);
   private fb     = inject(FormBuilder);
+  private supplierSvc = inject(SupplierService);
+  suppliers = signal<any[]>([]);
   appState       = inject(AppStateService);
 
   loading        = signal(false);
@@ -29,6 +32,7 @@ export class ProductForm implements OnInit {
     name:        ['', Validators.required],
     description: [''],
     categoryId:  [null as string | null],
+    supplierId:  [null as string | null],
   });
 
   variantsForm = this.fb.array([
@@ -37,9 +41,10 @@ export class ProductForm implements OnInit {
 
   ngOnInit(): void {
     const cId = this.appState.commerce()?.id;
-    if (cId) {
-      this.svc.getCategories(cId).subscribe(d => this.categories.set(d));
-    }
+  if (cId) {
+    this.svc.getCategories(cId).subscribe(d => this.categories.set(d));
+    this.supplierSvc.getByCommerce(cId).subscribe(d => this.suppliers.set(d));
+  }
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -60,6 +65,7 @@ export class ProductForm implements OnInit {
           name: product.name,
           description: product.description ?? '',
           categoryId: product.categoryId ?? null,
+          supplierId: product.supplierId ?? null,
         });
         this.loadingProduct.set(false);
       },

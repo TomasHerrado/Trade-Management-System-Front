@@ -20,6 +20,8 @@ export const DASHBOARD_ROUTES: Routes = [
       // Gestión del equipo — solo OWNER
       { path: 'team', canActivate: [ownerGuard], loadComponent: () => import('../team/team-list/team-list').then(m => m.TeamList) },
 
+      { path: 'statistics', canActivate: [ownerGuard], loadComponent: () => import('../statistics/statistics').then(m => m.StatisticsPage) },
+
       // Productos — OWNER y ADMIN pueden ver; crear/editar controlado en component
       { path: 'products', loadComponent: () => import('../products/product-list/product-list').then(m => m.ProductList) },
       { path: 'products/new', canActivate: [adminGuard], loadComponent: () => import('../products/product-form/product-form').then(m => m.ProductForm) },

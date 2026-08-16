@@ -33,6 +33,7 @@ export class ShellComponent {
       { label: 'Clientes',    icon: 'users',     path: '/customers',    roles: ['OWNER','ADMIN','EMPLOYEE'] },
       { label: 'Proveedores', icon: 'supplier',  path: '/suppliers',    roles: ['OWNER','ADMIN'] },
       { label: 'Caja',        icon: 'cash',      path: '/cash-register',roles: ['OWNER','ADMIN','EMPLOYEE'] },
+      { label: 'Estadisticas',icon: 'stats',     path: '/statistics',   roles: ['OWNER'] },
     ];
 
     const currentRole = this.role.role();

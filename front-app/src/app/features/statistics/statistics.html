@@ -1,0 +1,219 @@
+<div class="max-w-6xl">
+  <div class="mb-6">
+    <h1 class="text-xl font-semibold text-white/90">Estadísticas</h1>
+    <p class="text-sm text-white/30 mt-0.5">
+      @if (appState.hasCommerce()) {
+        {{ appState.commerce()!.name }}
+      } @else {
+        Panorama general del comercio
+      }
+    </p>
+  </div>
+
+  @if (!appState.hasCommerce()) {
+    <div class="rounded-2xl border border-dashed border-white/10 p-12 text-center">
+      <p class="text-white/40 text-sm">Seleccioná un comercio primero</p>
+    </div>
+  } @else if (loading()) {
+    <div class="flex justify-center py-16">
+      <div class="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  } @else if (error()) {
+    <div class="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+      {{ error() }}
+    </div>
+  } @else if (stats(); as s) {
+
+    <!-- Fila 1: KPI del mes + evolución -->
+    <div class="grid grid-cols-5 gap-5 mb-5">
+
+      <!-- KPI: ventas del mes -->
+      <div class="col-span-2 rounded-xl border border-white/5 p-5 flex flex-col justify-between" style="background:#1a1a1a;">
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-3">Ventas de este mes</p>
+        <div>
+          <p class="text-3xl font-semibold text-white/90 mb-2">${{ s.currentMonthTotal | number:'1.0-2' }}</p>
+          @if (s.variationPercent === null) {
+            <span class="inline-flex items-center gap-1 text-xs text-white/30 px-2 py-1 rounded-full bg-white/5">
+              Sin datos del mes anterior
+            </span>
+          } @else if (s.variationPercent >= 0) {
+            <span class="inline-flex items-center gap-1 text-xs text-emerald-400 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+              </svg>
+              +{{ s.variationPercent }}% vs. mes anterior
+            </span>
+          } @else {
+            <span class="inline-flex items-center gap-1 text-xs text-red-400 px-2 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+              </svg>
+              {{ s.variationPercent }}% vs. mes anterior
+            </span>
+          }
+        </div>
+        <p class="text-xs text-white/25 mt-4">Mes anterior: ${{ s.previousMonthTotal | number:'1.0-2' }}</p>
+      </div>
+
+      <!-- Evolución últimos 12 meses -->
+      <div class="col-span-3 rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-3">Evolución — últimos 12 meses</p>
+
+        @if (linePoints().length === 0) {
+          <p class="text-xs text-white/20 py-10 text-center">Sin ventas registradas todavía</p>
+        } @else {
+          <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" class="w-full h-40">
+            <defs>
+              <linearGradient id="evolutionGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6366f1" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path [attr.d]="areaPath()" fill="url(#evolutionGradient)"/>
+            <path [attr.d]="linePath()" fill="none" stroke="#6366f1" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            @for (p of linePoints(); track p.label + p.total) {
+              <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.5" fill="#6366f1"/>
+            }
+          </svg>
+          <div class="flex justify-between mt-1 px-1">
+            @for (p of linePoints(); track p.label; let i = $index) {
+              <span class="text-[9px] text-white/25" [class.invisible]="!showLineLabel(i)">
+                {{ p.label.split(' ')[0] }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Fila 2: producto más vendido + forma de pago -->
+    <div class="grid grid-cols-2 gap-5 mb-5">
+
+      <!-- Producto más vendido -->
+      <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-xs text-white/40 uppercase tracking-wider">Producto más vendido</p>
+          <div class="flex rounded-lg bg-white/5 p-0.5">
+            <button (click)="topProductsMode.set('quantity')"
+                    class="px-2.5 py-1 rounded-md text-[11px] transition-colors"
+                    [class.bg-indigo-500]="topProductsMode() === 'quantity'"
+                    [class.text-white]="topProductsMode() === 'quantity'"
+                    [class.text-white]="topProductsMode() !== 'quantity'"
+                    [class.text-opacity-40]="topProductsMode() !== 'quantity'">
+              Cantidad
+            </button>
+            <button (click)="topProductsMode.set('revenue')"
+                    class="px-2.5 py-1 rounded-md text-[11px] transition-colors"
+                    [class.bg-indigo-500]="topProductsMode() === 'revenue'"
+                    [class.text-white]="topProductsMode() === 'revenue'"
+                    [class.text-opacity-40]="topProductsMode() !== 'revenue'">
+              Dinero
+            </button>
+          </div>
+        </div>
+
+        @if (topProducts().length === 0) {
+          <p class="text-xs text-white/20 py-8 text-center">Sin ventas este mes</p>
+        } @else {
+          <div class="space-y-3">
+            @for (p of topProducts(); track p.label + (p.sublabel ?? '')) {
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <p class="text-xs text-white/70 truncate">
+                    {{ p.label }}
+                    @if (p.sublabel) {
+                      <span class="text-white/30"> — {{ p.sublabel }}</span>
+                    }
+                  </p>
+                  <span class="text-xs text-white/40 shrink-0 ml-2">
+                    {{ topProductsMode() === 'quantity' ? p.value : ('$' + (p.value | number:'1.0-2')) }}
+                  </span>
+                </div>
+                <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div class="h-full rounded-full bg-indigo-500" [style.width.%]="p.barPercent"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Ventas por forma de pago -->
+      <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-4">Ventas por forma de pago</p>
+
+        @if (paymentSegments().length === 0) {
+          <p class="text-xs text-white/20 py-8 text-center">Sin ventas este mes</p>
+        } @else {
+          <div class="flex items-center gap-6">
+            <svg viewBox="0 0 100 100" class="w-28 h-28 shrink-0 -rotate-90">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="14"/>
+              @for (seg of paymentSegments(); track seg.label) {
+                <circle cx="50" cy="50" r="40" fill="none" [attr.stroke]="seg.color" stroke-width="14"
+                        [attr.stroke-dasharray]="seg.dasharray" [attr.stroke-dashoffset]="seg.dashoffset"/>
+              }
+            </svg>
+            <div class="flex-1 space-y-2 min-w-0">
+              @for (seg of paymentSegments(); track seg.label) {
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background]="seg.color"></span>
+                  <span class="text-xs text-white/70 flex-1 truncate">{{ seg.label }}</span>
+                  <span class="text-xs text-white/40 shrink-0">{{ seg.percent | number:'1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Fila 3: ventas por sucursal (solo si hay más de una) -->
+    @if (branchBars().length > 1) {
+      <div class="rounded-xl border border-white/5 p-5 mb-5" style="background:#1a1a1a;">
+        <p class="text-xs text-white/40 uppercase tracking-wider mb-4">Ventas por sucursal — este mes</p>
+        <div class="space-y-3">
+          @for (b of branchBars(); track b.label) {
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs text-white/70">{{ b.label }}</p>
+                <span class="text-xs text-emerald-400">${{ b.value | number:'1.0-2' }}</span>
+              </div>
+              <div class="h-2 rounded-full bg-white/5 overflow-hidden">
+                <div class="h-full rounded-full bg-emerald-500" [style.width.%]="b.barPercent"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Fila 4: stock bajo -->
+    <div class="rounded-xl border border-white/5 p-5" style="background:#1a1a1a;">
+      <p class="text-xs text-white/40 uppercase tracking-wider mb-4">Productos con stock bajo</p>
+
+      @if (s.lowStock.length === 0) {
+        <p class="text-xs text-white/20 py-6 text-center">Todo el stock está por encima del mínimo 👍</p>
+      } @else {
+        <div class="space-y-2">
+          @for (item of s.lowStock; track item.productName + item.branchName + (item.variantName ?? '')) {
+            <div class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-red-500/5 border border-red-500/10">
+              <div class="min-w-0">
+                <p class="text-xs text-white/80 truncate">
+                  {{ item.productName }}
+                  @if (item.variantName && item.variantName !== 'DEFAULT') {
+                    <span class="text-white/30"> — {{ item.variantName }}</span>
+                  }
+                </p>
+                <p class="text-[10px] text-white/30 mt-0.5">{{ item.branchName }}</p>
+              </div>
+              <span class="text-xs text-red-400 shrink-0 ml-3">
+                {{ item.quantity }} / {{ item.minQuantity }} mín.
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
